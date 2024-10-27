@@ -1,15 +1,4 @@
 When I make the C++ version, I want:
 
-1) the abstract base class will have mostly abstract methods
-2) the binarydeque doesn't need validate()
-3) the validate and push should be separate calls, and customizable
-4) the peek should just loop L^2 unless parallelized to L
-5) figure out properties vs attributes
-
-TODO:
-
-fix peek to L^2 without a set
-add intrinsics
-test for 01010101 until it's slower than deque
-test for ([{}]) when nesting factor is low except 1% of the time
-benchmark it for less than 92
+1) replace the ABC with an interface. inheritance makes less sense than it used to
+2) benchmark parallel vs serial programming of push/popright
