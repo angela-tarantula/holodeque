@@ -1,0 +1,87 @@
+"""A binary holodeque implementation."""
+
+from typing import Optional, Iterable, override
+from holodeque.src.abstract_holodeque import HolodequeBase, Matrix, MatrixRow
+
+
+class binarydeque(HolodequeBase[int]):
+    """A holodeque that only accepts 0 and 1.
+
+    Attributes:
+        _matrix: A square base matrix for the holodeque.
+        _shape: The integer width of the base matrix.
+        _size: The integer size of the holodeque.
+        _maxlen: The integer maximum size of the holodeque.
+    """
+
+    @override
+    def __init__(self, iterable: Iterable[int] = (), maxlen: Optional[int] = None) -> None:
+        """Constructs a binarydeque and initializes it with the given iterable.
+
+        Args:
+            iterable: An Iterable of 0s and 1s to initialize the holodeque.
+            maxlen: If not None, will cap the size of the binarydeque at size=maxlen.
+        """
+        super().__init__(iterable=iterable, maxlen=maxlen)
+
+    @override
+    def _initialize_matrix(self) -> Matrix[int]:
+        """Initializes the base matrix.
+
+        Returns:
+            The 2x2 identity matrix.
+        """
+        return self.identity(2)
+
+    @override
+    def _handle_overflow(self, from_left: bool = True) -> None:
+        """Defines how the holodeque handles new input when size = maxlen.
+
+        Pops an element from the side opposite the input.
+
+        Args:
+            from_left: A bool that clarifies where the new input is trying to
+              be pushed. True if from pushleft(), False if from pushright().
+
+        Returns (Optional):
+            A bool that represents the success of the push.
+
+        Raises (Optional):
+            IndexError: An error that occurs when pushing past capacity.
+        """
+        if from_left:
+            self.popright()
+        else:
+            self.popleft()
+
+    @override
+    def _get_index(self, obj: int) -> int:
+        if not isinstance(obj, int):
+            raise TypeError(
+                f"this holodeque only accepts 0 and 1, not {type(obj)}")
+        if obj != 0 and obj != 1:
+            raise ValueError(f"this holodeque only accepts 0 and 1, not {obj}")
+        return obj
+
+    @override
+    def _get_element(self, index: int) -> int:
+        return index
+
+    @override
+    def reverse(self) -> None:
+        self._matrix[0][0], self._matrix[1][1] = self._matrix[1][1], self._matrix[0][0]
+
+    def negate(self) -> None:
+        """Flips all the bits stored in the holodeque.
+
+        Implemented by flipping the base matrix along each diagonal.
+        """
+        self._matrix[0][0], self._matrix[1][1] = self._matrix[1][1], self._matrix[0][0]
+        self._matrix[0][1], self._matrix[1][0] = self._matrix[1][0], self._matrix[0][1]
+
+
+if __name__ == "__main__":
+
+    # example usage
+    example = binarydeque()
+    example.extendleft([0, 0, 0, 0, 1, 1, 0])

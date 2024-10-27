@@ -1,0 +1,88 @@
+"""A fixed-alphabet holodeque implementation."""
+
+from typing import Optional, Iterable, override, AbstractSet
+from .HolodequeBase import HolodequeBase, Matrix, MatrixRow
+
+
+class holodeque[T](HolodequeBase[T]):
+    """A holodeque with a predefined alphabet (acceptable input).   
+
+    Attributes:
+        _matrix: A square base matrix for the holodeque.
+        _shape: The integer width of the base matrix.
+        _size: The integer size of the holodeque.
+        _maxlen: The integer maximum size of the holodeque.
+        _element_tuple: A tuple of acceptable input for the holodeque.
+        _element_map: A hashmap that converts each acceptable input to a unique
+          index of _matrix.
+    """
+
+    @override
+    def __init__(self, iterable: Iterable[T] = (), maxlen: Optional[int] = None, alphabet: AbstractSet[T] = set()) -> None:
+        """Constructs a holodeque and initializes it with the given iterable.
+
+        Args:
+            iterable: An Iterable of 0s and 1s to initialize the holodeque.
+            maxlen: If not None, will cap the size of the holodeque at size=maxlen.
+            alphabet: A set of acceptable input for the holodeque.
+        """
+        self._element_tuple: tuple[T, ...] = tuple(alphabet)
+        self._element_map: dict[T, int] = {
+            letter: i for i, letter in enumerate(self._element_tuple)}
+        super().__init__(iterable=iterable, maxlen=maxlen, alphabet=frozenset(alphabet))
+
+    @property
+    def alphabet(self) -> Iterable[T]:
+        """The set of input the holodeque accepts."""
+        return self._element_map.keys()
+
+    @override
+    def _initialize_matrix(self) -> Matrix[int]:
+        """Initializes the base matrix.
+
+        Returns:
+            An identity matrix whose width is the number of unique valid inputs.
+        """
+        return self.identity(len(self._element_tuple))
+
+    @override
+    def _handle_overflow(self, from_left: bool = True) -> None:
+        """Defines how the holodeque handles new input when size = maxlen.
+
+        Pops an element from the side opposite the input.
+
+        Args:
+            from_left: A bool that clarifies where the new input is trying to
+              be pushed. True if from pushleft(), False if from pushright().
+
+        Returns (Optional):
+            A bool that represents the success of the push.
+
+        Raises (Optional):
+            IndexError: An error that occurs when pushing past capacity.
+        """
+        if from_left:
+            self.popright()
+        else:
+            self.popleft()
+
+    @override
+    def _get_index(self, obj: T) -> int:
+        if obj not in self._element_map:
+            raise ValueError(f"this holodeque does not accept {obj}")
+        return self._element_map[obj]
+
+    @override
+    def _get_element(self, index: int) -> T:
+        return self._element_tuple[index]
+
+
+if __name__ == "__main__":
+
+    # example usage
+    q = holodeque(alphabet={0, 1, 2, 3})
+    t = holodeque(alphabet={0, 1, 2, 3})
+    ext = [0, 1, 2, 2, 3, 0, 3, 2, 3, 2, 2, 1]
+    q.extendright(ext)
+    t.extendleft(ext)
+    assert list(q) == list(reversed(t))

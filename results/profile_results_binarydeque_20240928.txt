@@ -1,0 +1,43 @@
+profiled on 09-28-2024
+
+Sat Sep 28 21:56:30 2024    profile_results
+
+         63000014 function calls in 11.964 seconds
+
+   Ordered by: cumulative time
+   List reduced from 36 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   11.964   11.964 {built-in method builtins.exec}
+        1    0.000    0.000   11.964   11.964 <string>:1(<module>)
+        1    0.492    0.492   11.964   11.964 profile_binarydeque.py:8(test_performance)
+  2000000    1.996    0.000    5.417    0.000 HolodequeBase.py:191(_peek)
+  1000000    0.556    0.000    4.244    0.000 HolodequeBase.py:308(popleft)
+  1000000    0.561    0.000    4.045    0.000 HolodequeBase.py:325(popright)
+  4000000    1.829    0.000    2.990    0.000 HolodequeBase.py:165(_shear)
+  2000000    1.476    0.000    2.121    0.000 HolodequeBase.py:216(_narrow_search)
+ 12000000    1.217    0.000    1.759    0.000 HolodequeBase.py:64(shape)
+  1000000    0.518    0.000    1.600    0.000 HolodequeBase.py:260(pushright)
+
+The 4 bottlenecking functions have the largest tottime:
+
+1. _peek
+2. _shear
+3. _narrow_search
+4. shape
+
+It is interesting that shape is a bottleneck called, I will start prefering the private attribute access over the property access.
+
+_narrow_search is expectedly wasteful because it creates a set, which is
+probably overkill for a 2x2 base matrix. I can fix this by overriding the
+_narrow_search implementation for the 2x2 case.
+
+_peek is also long because of overkill. I can override this. For 2x2, it can
+be simple. Also, with parallel computing, I can eliminate the need for
+_narrow_search entirely and speed _peek up as well.
+
+_shear is slow but can be sped up with parallel processing. Also for 2x2
+case can be made simpler.
+
+In retrospect, these are unsurprising results, and confirm the expected
+bottlenecking algorithms.

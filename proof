@@ -1,0 +1,133 @@
+A holodeque is a simulation of a deque with a matrix where pushing and
+popping on either side are simulated by matrix multiplication on either
+side. The space used for the matrix is nxn where n is the number of unique
+values that the holodeque accepts. When n is small compared to the size N
+of the holodeque, this saves space. Previously O(1) deque operations
+become O(nxn) for the holodeque, which is also O(1) when n << N.
+
+A simple example is when there are only ever n = 3 different elements in
+the deque. Let's say these elements are 0, 1, and 2. Because n = 3, out
+base matrix is the 3x3 identity matrix:
+
+                           [1, 0, 0]
+                      I3 = [0, 1, 0]
+                           [0, 0, 1]
+
+Pushing to the left or right of the deque will correspond to multiplying
+the corresponding shear matrices on the left-hand side or right-hand side.
+
+        [1, 1, 1]          [1, 0, 0]          [1, 0, 0]
+    0 = [0, 1, 0]      1 = [1, 1, 1]      2 = [0, 1, 0]
+        [0, 0, 1]          [0, 0, 1]          [1, 1, 1]
+
+So pushing the sequence 1020 on the right corresponds to this:
+
+                          [2, 4, 3]
+                      M = [3, 7, 5]
+                          [1, 2, 2]
+
+Peeking the right side of the deque corresponds to identifying the smallest
+column. For example, in this case, column 0 is the smallest becase 2 < 4 & 3,
+3 < 7 & 5, and 1 < 2 & 2. Sometimes there are ties on some rows, but there
+will always be a tie-breaking row. Since column 0 is the smallest, we know
+that 0 is the rightmost element.
+
+Peeking the left side of the deque corresponds to identifying the largest
+row. For exaple, in this case, the largest row is row 1, becausse 3 > 2 & 1,
+7 > 4 & 2, and 5 > 3 & 2. Again, sometimes there are ties on some columns,
+but there will always be a tie-breaking column. Since row 1 is the smallest,
+we know that 1 is the leftmost element.
+
+The reason this works is because of the math behind shear transformations.
+Here is a non-rigorous proof that this works for 3x3 matrices. Without
+loss of generality, let us pick the shear matrix i = 0 and see how it
+transforms an arbitrary 3x3 matrix:
+
+         [1, 1, 1]     [a, b, c]    [a+d+g, b+e+h, c+f+i]
+         [0, 1, 0]  X  [d, e, f]  = [  d  ,   e  ,   f  ]
+         [0, 0, 1]     [g, h, i]    [  g  ,   h  ,   i  ]
+
+The result is that row 0 is replaced with [sum(col(m)) for m in range(n)].
+The pattern for any shear matrix i is that the original matrix's row i
+is replace by [sum(col(m)) for m in range(n)]. This is why you can always
+determine the leftmost element by observing which row is the largest.
+Tie-breaking cirumstances can be fleshed out in a full proof. Similar logic
+lets us reason about right-hand multiplication in a full proof.
+
+In general, matrix multiplication between nxn and nxn matrices is O(n^3),
+but because these shear transformations are more predictable, we don't
+have to carry out the multiplication traditionally. For example, replacing
+row i with [sum(col(m)) for m in range(n)] requires only O(n^2) time. The
+time complexity of pushing and peeking on either side is always O(n^2).
+
+Finally, popping on either side corresponds to left- and right-multiplying
+our base matrix with the inverses of those shear matrices, which in this
+example are:
+
+        [1, -1, -1]          [ 1, 0,  0]          [ 1,  0, 0]
+    0 = [0,  1,  0]      1 = [-1, 1, -1]      2 = [ 0,  1, 0]
+        [0,  0,  1]          [ 0, 0,  1]          [-1, -1, 1]
+
+The pattern is all diagonal entries are 1, all remaining entries on row i
+are -1, and all other entries are 0. These matrices happen to be shear
+matrices themselves. Because all the shear matrices can all be understood
+formulaically, we don't have to waste computer memory to store them. You
+must peek before you pop to confirm that you pop the correct element. If
+you pop the incorrect element, you will know because some entry of M will
+become negative. That is explained in a full proof. Also, these linear
+transformations can also be optimized such that popping is always O(n^2).
+
+The last useful trick of this implementation is O(1) merging of deques.
+Given two deques, M1 and M2, concatenating them like M1-M2 and M2-M1 simply
+corresponds to calculating M1xM2 and M2xM1, respectively.
+
+Summary of time complexity:
+
+push (either side) = O(n^2), or O(1) when n << N
+peek (either side) = O(n^2), or O(1) when n << N
+pop (either side) = O(n^2), or O(1) when n << N
+merge (either side) = O(n^2), or O(1) when n << N
+
+Space complexity = O(n^2), or O(1) when n << N
+
+Technically speaking, the model we are using to evaluating time and space
+complexity is not the most appropriate here. As the deque grows, the bitsize
+of the integers in M will grow proportionally. Hence, "arithmetic complexity"
+analysis is not as useful as "bitwise complexity" analysis, which would
+reveal that operations are not really as fast or space-efficient for all N
+because the required bitsizes of the integers in M are very large and not
+bounded by a fixed constant.
+
+As a result, the bitwise complexity of each operation is really O(N^2), and
+the space required is O(N^2) as well. However, this is only noticeable for
+large N. Whenever n << N and N is less than 10^9, the holodeque outperforms
+the traditional deque. This is because growing and shrinking the traditional
+deque requires allocating and deallocating memory as needed, but growing and
+shrinking the holodeque only requires growing and shrinking the bitsizes of
+the integers in M, which the machine does faster and implicitly. It is in
+fact possible to outperform the holodeque on the smaller scale only if you
+pre-allocate a fixed capacity of storage for the deque, but this requires
+knowing how large your deque will ever be, is no longer space-efficient,
+and loses the flexibility of resizing as needed.
+
+Applications:
+
+Resizable binary buffers. Binary buffers only accept binary input (n = 2)
+and are typically only 8KB in size (N = 64_000). The largest buffers are
+only around 8MB. At this scale, the holodeque shines.
+
+Secret sharing. A dealer can assign each person a number of the base matrix
+and, without everyone coming together, nobody will know the order of the
+elements in the holodeque.
+
+Complexity theory. If you count all arithmetic operations as O(1), then this
+novel data structure allows you to improve the lower bounds of time and
+space complexity by exploiting problems where a deque is needed and the
+number of unique elements it stores is small compared to its size.
+
+Limitations:
+
+Besides needing n << N and a bounded N, the holodeque is also limited in the
+types of input it can accept. Unlike a traditional deque, it cannot accept
+mutable objects. In this implementation, a proxy used to identify whether an
+object is immutable is whether it's Hashable (i.e. it implements __hash__).

@@ -1,0 +1,14 @@
+benchmarked on 09-28-2024
+
+Testing append/pushright on large data:
+deque: 0.0004956669872626662
+bdeque: 1.96467229098198
+Testing appendleft/pushleft on large data:
+deque: 0.0004883329966105521
+bdeque: 1.9664175829966553
+Testing pop/popright on large data:
+deque: 0.0005050830077379942
+bdeque: 1.9637111249903683
+Testing popleft on large data:
+deque: 0.00048670798423700035
+bdeque: 1.9659204579947982
