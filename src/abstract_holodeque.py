@@ -201,32 +201,31 @@ class HolodequeBase[T: Hashable](ABC):
                         self._matrix[j][i] += sign * self._matrix[j][axis]
 
     def _peekleft(self) -> int:
-        """Obtains the axis that corresponds to the rightmost element of the holodeque.
+        """Obtains the axis that corresponds to the leftmost element of the holodeque.
+
+        The key insight is that the index of the first occurrence of the maximum value
+        in the last column marks the axis of the leftmost element.
 
         Returns:
-            The int index of the largest row of the base matrix.
+            The int index of the row with the largest value in the last column of thebase matrix.
         """
-        # Search the last column for the maximum and return the index of its first occurrence
-        return max(range(self._shape), key=lambda i: self._matrix[i][-1])
-
-    # TODO: do peekleft, if size==1 return; else look at that row
+        return max(range(self._shape), key=lambda x: self._matrix[x][-1])
     
     def _peekright(self) -> int:
-        """Obtains the axis of the leftmost element of the holodeque.
+        """Obtains the axis that corresponds to the rightmost element of the holodeque.
+
+        The key insight is that the index of the minimum value of the row at the
+        leftmost element's axis marks the axis of the rightmost element.
 
         Returns:
-            The int index of the smallest column of the base matrix.
+            The int index of the column with the smallest value in the row of the left element.
         """
+        first_axis: int = max(range(self._shape), key=lambda x: self._matrix[x][-1])
+        if self._size == 1:
+            return first_axis
+        else:
+            return min(range(self._shape), key=lambda x: self._matrix[first_axis][x])
 
-        # Initialize a candidates list to track potential column indices
-        candidates = [True] * self._shape
-
-        for row in self._matrix:
-            minimum: int = min(row)
-            for j, val in enumerate(row):
-                if val > minimum:
-                    candidates[j] = False
-        return candidates.index(True)
 
     def pushleft(self, element: T) -> None:
         """Add an element to the left end of the holodeque.
