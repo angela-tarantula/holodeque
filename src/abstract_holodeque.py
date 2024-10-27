@@ -14,6 +14,8 @@ import operator
 # TODO: parallelize peekright, pushes, and pops
 
 # typing protocol
+
+
 class MatrixRow[R: SupportsInt](Protocol):
 
     def __getitem__(self, index: int) -> R:
@@ -189,7 +191,6 @@ class HolodequeBase[T: Hashable](ABC):
                      applies the direct transformation.
         """
         sign: int = -1 if reverse else 1
-
         for i in range(self._shape):
             if i != axis:
                 for j in range(self._shape):
@@ -200,7 +201,7 @@ class HolodequeBase[T: Hashable](ABC):
                         # Add column of axis to all other columns
                         self._matrix[j][i] += sign * self._matrix[j][axis]
 
-    def _peekleft(self) -> int:
+    def _leftmost_axis(self) -> int:
         """Obtains the axis that corresponds to the leftmost element of the holodeque.
 
         The key insight is that the index of the first occurrence of the maximum value
@@ -210,8 +211,8 @@ class HolodequeBase[T: Hashable](ABC):
             The int index of the row with the largest value in the last column of thebase matrix.
         """
         return max(range(self._shape), key=lambda x: self._matrix[x][-1])
-    
-    def _peekright(self) -> int:
+
+    def _rightmost_axis(self) -> int:
         """Obtains the axis that corresponds to the rightmost element of the holodeque.
 
         The key insight is that the index of the minimum value of the row at the
@@ -220,12 +221,12 @@ class HolodequeBase[T: Hashable](ABC):
         Returns:
             The int index of the column with the smallest value in the row of the left element.
         """
-        first_axis: int = max(range(self._shape), key=lambda x: self._matrix[x][-1])
+        left_axis: int = max(range(self._shape),
+                             key=lambda x: self._matrix[x][-1])
         if self._size == 1:
-            return first_axis
+            return left_axis
         else:
-            return min(range(self._shape), key=lambda x: self._matrix[first_axis][x])
-
+            return min(range(self._shape), key=lambda x: self._matrix[left_axis][x])
 
     def pushleft(self, element: T) -> None:
         """Add an element to the left end of the holodeque.
@@ -261,7 +262,6 @@ class HolodequeBase[T: Hashable](ABC):
         self._transform(index, left=False, reverse=False)
         self._size += 1
 
-    # TODO: combine with _peekleft method
     def peekleft(self) -> T:
         """Peek the leftmost element in the holodeque.
 
@@ -273,11 +273,8 @@ class HolodequeBase[T: Hashable](ABC):
         """
         if not self._size:
             raise IndexError("peek from an empty holodeque")
+        return self._get_element(self._leftmost_axis())
 
-        index: int = self._peekleft()
-        return self._get_element(index)
-
-    # TODO: combine with _peekright method
     def peekright(self) -> T:
         """Peek the rightmost element in the holodeque.
 
@@ -289,9 +286,7 @@ class HolodequeBase[T: Hashable](ABC):
         """
         if not self._size:
             raise IndexError("peek from an empty holodeque")
-
-        index: int = self._peekright()
-        return self._get_element(index)
+        return self._get_element(self._rightmost_axis())
 
     def popleft(self) -> T:
         """Remove and return the leftmost element in the holodeque.
@@ -305,10 +300,10 @@ class HolodequeBase[T: Hashable](ABC):
         if not self._size:
             raise IndexError("pop from an empty holodeque")
 
-        index: int = self._peekleft()
-        self._transform(index, left=True, reverse=True)
+        left_axis: int = self._leftmost_axis()
+        self._transform(left_axis, left=True, reverse=True)
         self._size -= 1
-        return self._get_element(index)
+        return self._get_element(left_axis)
 
     def popright(self) -> T:
         """Remove and return the rightmost element in the holodeque.
@@ -322,10 +317,10 @@ class HolodequeBase[T: Hashable](ABC):
         if not self._size:
             raise IndexError("pop from an empty holodeque")
 
-        index: int = self._peekright()
-        self._transform(index, left=False, reverse=True)
+        right_axis: int = self._rightmost_axis()
+        self._transform(right_axis, left=False, reverse=True)
         self._size -= 1
-        return self._get_element(index)
+        return self._get_element(right_axis)
 
     def extendleft(self, iterable: Iterable[T]) -> None:
         """Extend the left end of the holodeque with an iterable.
