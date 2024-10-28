@@ -375,6 +375,8 @@ class HolodequeBase[T: Hashable](ABC):
         Args:
             other: Another holodeque to be concatenated on the left side.
         """
+        if self._maxlen is not None and self._size + other._size > self._maxlen:
+            raise ValueError("Incompatible holodeque because it would exceed maximum length")
         if self is other:
             self._merge_self()
             return None
@@ -383,11 +385,6 @@ class HolodequeBase[T: Hashable](ABC):
         for axis in range(self._shape):
             if self._get_element(axis) != other._get_element(axis):
                 raise ValueError("Incompatible holodeque because elements are mapped differently")
-        if self._maxlen is not None and self._size + other._size > self._maxlen:
-            raise ValueError("Incompatible holodeque because it would exceed maximum length")
-        if self is other:
-            self._merge_self()
-            return None
 
         for col in range(self._shape):
             #calculate new_col to replace col
@@ -408,6 +405,8 @@ class HolodequeBase[T: Hashable](ABC):
         Args:
             other: Another holodeque to be concatenated on the right side.
         """
+        if self._maxlen is not None and self._size + other._size > self._maxlen:
+            raise ValueError("Incompatible holodeque because it would exceed maximum length")
         if self is other:
             self._merge_self()
             return None
@@ -416,8 +415,6 @@ class HolodequeBase[T: Hashable](ABC):
         for axis in range(self._shape):
             if self._get_element(axis) != other._get_element(axis):
                 raise ValueError("Incompatible holodeque because elements are mapped differently")
-        if self._maxlen is not None and self._size + other._size > self._maxlen:
-            raise ValueError("Incompatible holodeque because it would exceed maximum length")
 
         for row in range(self._shape):
             # calculate new_row to replace row
