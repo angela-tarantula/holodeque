@@ -7,13 +7,16 @@ the non-commutative nature of matrix multiplication, ensuring that each sequence
 corresponds to a unique output matrix.
 """
 
+# NOTE: BEFORE YOU JUDGE, I ACTUALLY PROFILED NUMPY AND IT'S SLOWER THAN LISTS FOR SMALL MATRIX SIZES.
+#       I USED STRUCTURAL TYPING TO MAKE THE CLASS IMPLEMENTATION-AGNOSTIC, ENABLING FLEXIBILITY,
+#       BUT BY DEFAULT, IT WILL USE ORDINARY LISTS TO REPRESENT THE BASE MATRIX.
+#       THE PURPOSE IS JUST TO DEVEOLOP A WORKING PROTOTYPE THAT'S FASTER THAN COLLECTIONS.DEQUE.
+
 from typing import Iterable, Iterator, Callable, Hashable, Optional, Any, Self, Protocol, SupportsInt
 from abc import ABC, abstractmethod
 import operator
 
 # typing protocol
-
-
 class MatrixRow[R: SupportsInt](Protocol):
 
     def __getitem__(self, index: int) -> R:
