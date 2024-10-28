@@ -100,17 +100,13 @@ class HolodequeBase[T: Hashable](ABC):
             n: A positive integer representing the size of the matrix.
 
         Returns:
-            A Matrix representing the nxn identity matrix. For example:
-
-                             [[1, 0, 0]
-                        I3 =  [0, 1, 0]
-                              [0, 0, 1]]
+            A Matrix representing the nxn identity matrix.
 
         Raises:
             ValueError: If n is not a positive integer.
         """
         if n <= 0:
-            raise ValueError("n must be a positive integer.")
+            raise ValueError("n must be positive.")
         return [[int(i == j) for j in range(n)] for i in range(n)]
 
     @abstractmethod
@@ -355,22 +351,26 @@ class HolodequeBase[T: Hashable](ABC):
             other: Another holodeque to be concatenated on the left side.
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
-            raise ValueError("Incompatible holodeque because it would exceed maximum length")
+            raise ValueError(
+                "Incompatible holodeque because it would exceed maximum length")
         if self is other:
             self._merge_self()
             return None
         if self._shape != other._shape:
-            raise ValueError("Incompatible holodeque because matrices have different shapes")
+            raise ValueError(
+                "Incompatible holodeque because matrices have different shapes")
         for axis in range(self._shape):
             if self._get_element(axis) != other._get_element(axis):
-                raise ValueError("Incompatible holodeque because elements are mapped differently")
+                raise ValueError(
+                    "Incompatible holodeque because elements are mapped differently")
 
         for col in range(self._shape):
-            #calculate new_col to replace col
+            # calculate new_col to replace col
             new_col: list[int] = [0] * self._shape
             for row in range(self._shape):
                 for x in range(self._shape):
-                    new_col[row] += other._matrix[row][x] * self._matrix[x][col]
+                    new_col[row] += other._matrix[row][x] * \
+                        self._matrix[x][col]
             # replace col with new_col
             for row in range(self._shape):
                 self._matrix[row][col] = new_col[row]
@@ -385,22 +385,26 @@ class HolodequeBase[T: Hashable](ABC):
             other: Another holodeque to be concatenated on the right side.
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
-            raise ValueError("Incompatible holodeque because it would exceed maximum length")
+            raise ValueError(
+                "Incompatible holodeque because it would exceed maximum length")
         if self is other:
             self._merge_self()
             return None
         if self._shape != other._shape:
-            raise ValueError("Incompatible holodeque because matrices have different shapes")
+            raise ValueError(
+                "Incompatible holodeque because matrices have different shapes")
         for axis in range(self._shape):
             if self._get_element(axis) != other._get_element(axis):
-                raise ValueError("Incompatible holodeque because elements are mapped differently")
+                raise ValueError(
+                    "Incompatible holodeque because elements are mapped differently")
 
         for row in range(self._shape):
             # calculate new_row to replace row
             new_row: list[int] = [0] * self._shape
             for col in range(self._shape):
                 for x in range(self._shape):
-                    new_row[col] += self._matrix[row][x] * other._matrix[x][col]
+                    new_row[col] += self._matrix[row][x] * \
+                        other._matrix[x][col]
             # replace row with new_row
             for col in range(self._shape):
                 self._matrix[row][col] = new_row[col]
@@ -408,7 +412,7 @@ class HolodequeBase[T: Hashable](ABC):
 
     def _merge_self(self) -> None:
         """Merge the holodeque with itself.
-        
+
         Squares the base matrix of the holodeque in-place.
         """
         square: Matrix[int] = [
@@ -514,22 +518,34 @@ class HolodequeBase[T: Hashable](ABC):
     def __len__(self) -> int:
         return self._size
 
-    # TODO: make this wrap around too, and get rid of iter()
     def __getitem__(self, index: int) -> T:
         if index < 0:
             index += self._size
         if index < 0 or index >= self._size:
             raise IndexError("holodeque index out of range")
-        iterator: Iterator[T] = iter(self)
-        for _ in range(index):
-            next(iterator)
-        return next(iterator)
+        if index > self._size // 2:
+            index -= self._size
+        desired_item: T
+        if index >= 0:
+            for _ in range(index):
+                self.pushright(self.popleft())
+            desired_item = self.peekleft()
+            for _ in range(index):
+                self.pushleft(self.popright())
+        else:
+            index = -index - 1
+            for _ in range(index):
+                self.pushleft(self.popright())
+            desired_item = self.peekright()
+            for _ in range(index):
+                self.pushright(self.popleft())
+        return desired_item
 
     def __setitem__(self, index: int, value: T) -> None:
         if index < 0:
             index += self._size
         if index < 0 or index >= self._size:
-            raise IndexError("deque index out of range")
+            raise IndexError("holodeque index out of range")
         if index > self._size // 2:
             index -= self._size
         if index >= 0:
@@ -548,32 +564,34 @@ class HolodequeBase[T: Hashable](ABC):
             for _ in range(index):
                 self.pushright(self.popleft())
 
-    # TODO make this wrap around
     def __delitem__(self, index: int) -> None:
         if index < 0:
-            index = ~index
-        if index >= self._size:
-            raise IndexError("deque index out of range")
-        i: int = 0
-        try:
-            for i in range(self._size):
-                if i == index:
-                    self.popleft()
-                    return
+            index += self._size
+        if index < 0 or index >= self._size:
+            raise IndexError("holodeque index out of range")
+        if index > self._size // 2:
+            index -= self._size
+        if index >= 0:
+            for _ in range(index):
                 self.pushright(self.popleft())
-        finally:
-            self.rotate(i)
+            self.popleft()
+            for _ in range(index):
+                self.pushleft(self.popright())
+        else:
+            index = -index - 1
+            for _ in range(index):
+                self.pushleft(self.popright())
+            self.popright()
+            for _ in range(index):
+                self.pushright(self.popleft())
 
     def __repr__(self) -> str:
-        return str(vars(self))
-
-    def __str__(self) -> str:
-        str_matrix: list[list[str]] = [
-            [str(elem) for elem in row] for row in self._matrix]
-        max_width: int = max(len(elem) for row in str_matrix for elem in row)
-        formatted_rows: list[str] = [
-            " ".join(f"{elem:>{max_width}}" for elem in row) for row in str_matrix]
-        return "\n".join(formatted_rows)
+        result: list[str] = [f"holodeque({list(self)}"]
+        if self._maxlen is not None:
+            result.append(f", maxlen={self._maxlen}")
+        for key, value in self._kwargs.items():
+            result.append(f", {key}={value}")
+        return "".join(result)
 
     def __hash__(self):
         raise TypeError("Holodeque is unhashable")
