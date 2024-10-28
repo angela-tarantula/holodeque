@@ -348,46 +348,42 @@ class HolodequeBase[T: Hashable](ABC):
             for elem in iterable:
                 self.pushright(elem)
 
-    # TODO: ask GPT preview about this one
     def mergeleft(self, other: Self) -> None:
         """Concatenate another holodeque to the left end of this holodeque.
 
-        Instead of adding elements from the other holodeque one at a time,
-        this method performs a left multiplication of their base matrices.
-        This implementation utilizes dynamic programming to update
-        the columns of this holodeque's base matrix.
+        Performs in-place left multiplication of their base matrices.
 
         Args:
             other: Another holodeque to be concatenated on the left side.
         """
-        for i in range(self._shape):  # calculate col(i)
-            line: list[int] = [0] * self._shape
-            for j in range(self._shape):
-                for k in range(self._shape):
-                    line[j] += other._matrix[j][k] * self._matrix[k][i]
-            for j in range(self._shape):  # update col(i)
-                self._matrix[j][i] = line[j]
+        if self._shape != other._shape:
+            raise ValueError("Incompatible holodeque because matrices have different shapes")
+        for col in range(self._shape):
+            new_col: list[int] = [0] * self._shape
+            for row in range(self._shape):
+                for x in range(self._shape):
+                    new_col[row] += other._matrix[row][x] * self._matrix[x][col]
+            for row in range(self._shape):
+                self._matrix[row][col] = new_col[row]
         self._size += other.size
 
-    # TODO ask GPT preview about this too
     def mergeright(self, other: Self) -> None:
         """Concatenate another holodeque to the right end of this holodeque.
 
-        Instead of adding elements from the other holodeque one at a time,
-        this method performs a right multiplication of their base matrices.
-        This implementation utilizes dynamic programming to update
-        the rows of this holodeque's base matrix.
+        Performs in-place right multiplication of their base matrices.
 
         Args:
             other: Another holodeque to be concatenated on the right side.
         """
-        for i in range(self._shape):  # calculate row(i)
-            line: list[int] = [0] * self._shape
-            for j in range(self._shape):
-                for k in range(self._shape):
-                    line[j] += self._matrix[i][k] * other._matrix[k][j]
-            for j in range(self._shape):  # update row(i)
-                self._matrix[i][j] = line[j]
+        if self._shape != other._shape:
+            raise ValueError("Incompatible holodeque because matrices have different shapes")
+        for row in range(self._shape):
+            new_row: list[int] = [0] * self._shape
+            for col in range(self._shape):
+                for x in range(self._shape):
+                    new_row[col] += self._matrix[row][x] * other._matrix[x][col]
+            for col in range(self._shape):
+                self._matrix[row][col] = new_row[col]
         self._size += other.size
 
     def clear(self) -> None:
