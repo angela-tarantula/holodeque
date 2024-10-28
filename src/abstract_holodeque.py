@@ -348,25 +348,6 @@ class HolodequeBase[T: Hashable](ABC):
             for elem in iterable:
                 self.pushright(elem)
 
-    def _merge_self(self) -> None:
-        """Merge the holodeque with itself.
-        
-        Squares the base matrix of the holodeque in-place.
-        """
-        square: Matrix[int] = [
-            [
-                sum(
-                    self._matrix[row][k] * self._matrix[k][col]
-                    for k in range(self._shape)
-                )
-                for col in range(self._shape)
-            ]
-            for row in range(self._shape)
-        ]
-        for i in range(self._shape):
-            for j in range(self._shape):
-                self._matrix[i][j] = square[i][j]
-
     def mergeleft(self, other: Self) -> None:
         """Concatenate another holodeque to the left end of this holodeque.
 
@@ -426,6 +407,26 @@ class HolodequeBase[T: Hashable](ABC):
             for col in range(self._shape):
                 self._matrix[row][col] = new_row[col]
         self._size += other.size
+
+    def _merge_self(self) -> None:
+        """Merge the holodeque with itself.
+        
+        Squares the base matrix of the holodeque in-place.
+        """
+        square: Matrix[int] = [
+            [
+                sum(
+                    self._matrix[row][k] * self._matrix[k][col]
+                    for k in range(self._shape)
+                )
+                for col in range(self._shape)
+            ]
+            for row in range(self._shape)
+        ]
+        for i in range(self._shape):
+            for j in range(self._shape):
+                self._matrix[i][j] = square[i][j]
+        self._size *= 2
 
     def clear(self) -> None:
         """Empties the holodeque.
