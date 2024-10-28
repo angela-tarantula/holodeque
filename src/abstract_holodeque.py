@@ -11,8 +11,6 @@ from typing import Iterable, Iterator, Callable, Hashable, Optional, Any, Self, 
 from abc import ABC, abstractmethod
 import operator
 
-# TODO: parallelize peekright, pushes, and pops
-
 # typing protocol
 
 
