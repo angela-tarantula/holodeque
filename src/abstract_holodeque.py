@@ -358,11 +358,17 @@ class HolodequeBase[T: Hashable](ABC):
         """
         if self._shape != other._shape:
             raise ValueError("Incompatible holodeque because matrices have different shapes")
+        for axis in range(self._shape):
+            if self._get_element(axis) != other._get_element(axis):
+                raise ValueError("Incompatible holodeque because elements are mapped differently")
+
         for col in range(self._shape):
+            #calculate new_col to replace col
             new_col: list[int] = [0] * self._shape
             for row in range(self._shape):
                 for x in range(self._shape):
                     new_col[row] += other._matrix[row][x] * self._matrix[x][col]
+            # replace col with new_col
             for row in range(self._shape):
                 self._matrix[row][col] = new_col[row]
         self._size += other.size
@@ -377,11 +383,17 @@ class HolodequeBase[T: Hashable](ABC):
         """
         if self._shape != other._shape:
             raise ValueError("Incompatible holodeque because matrices have different shapes")
+        for axis in range(self._shape):
+            if self._get_element(axis) != other._get_element(axis):
+                raise ValueError("Incompatible holodeque because elements are mapped differently")
+
         for row in range(self._shape):
+            # calculate new_row to replace row
             new_row: list[int] = [0] * self._shape
             for col in range(self._shape):
                 for x in range(self._shape):
                     new_row[col] += self._matrix[row][x] * other._matrix[x][col]
+            # replace row with new_row
             for col in range(self._shape):
                 self._matrix[row][col] = new_row[col]
         self._size += other.size
