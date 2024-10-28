@@ -25,6 +25,19 @@ Notes on functions:
 
 Current bottlenecks (tottime):
 
-1) _transform could be faster, maybe try paralellizing it?
-2) _rightmost_axis could be parallelized to check rightmost_axis for all rows,
-      then checking for leftmost_axis to get correct one. Would save 0.5 sec of cumtime probably
+1) _transform could be faster, I see 2 options:
+  a) Every modification of the base matrix during transform is independent,
+      and can run in its own thread/process.
+  b) Simpler idea: ditch the "sign" variable method
+      because it requires lengthy bit negation
+2) _rightmost_axis could parallelized:
+  a) simultaneously do:
+      i) check rightmost_axis for each row
+      ii) check leftmost_axis to get relevant row
+  b) use result of ii to pick the relevant thread of i
+  I suspect this would save 0.5 sec of cumtime probably
+
+Other thoughts:
+
+As described in notes, push/pops can be O(m) with parallelization as well,
+but doesn't seem to be bottlenecking much.

@@ -65,7 +65,7 @@ class HolodequeBase[T: Hashable](ABC):
                     the number of elements.
             kwargs: Additional keyword arguments for use by subclasses.
 
-        Raises:e
+        Raises:
             ValueError: If maxlen is negative.
         """
         self._matrix: Matrix[int] = self._initialize_matrix()
@@ -168,12 +168,6 @@ class HolodequeBase[T: Hashable](ABC):
             The element that corresponds to the axis.
         """
         ...
-
-    def _view_row(self, i: int) -> Iterable[int]:
-        return (num for num in self._matrix[i])
-
-    def _view_column(self, i: int) -> Iterable[int]:
-        return (row[i] for row in self._matrix)
 
     def _transform(self, axis: int, left: bool = True, reverse: bool = False) -> None:
         """Applies the specified transformation to the base matrix.
@@ -352,6 +346,10 @@ class HolodequeBase[T: Hashable](ABC):
 
         Args:
             other: Another holodeque to be concatenated on the left side.
+
+        Raises:
+            ValueError: If the other holodeque has a different base matrix shape, 
+              has its elements mapped differently, or if merge would exceed maxlen.
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
@@ -386,6 +384,10 @@ class HolodequeBase[T: Hashable](ABC):
 
         Args:
             other: Another holodeque to be concatenated on the right side.
+        
+        Raises:
+            ValueError: If the other holodeque has a different base matrix shape, 
+              has its elements mapped differently, or if merge would exceed maxlen.
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
