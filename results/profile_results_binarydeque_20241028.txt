@@ -1,0 +1,30 @@
+Mon Oct 28 09:49:38 2024    profile_results
+
+         25000015 function calls in 5.842 seconds
+
+   Ordered by: cumulative time
+   List reduced from 29 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    5.842    5.842 {built-in method builtins.exec}
+        1    0.000    0.000    5.842    5.842 <string>:1(<module>)
+        1    0.444    0.444    5.842    5.842 profile_binarydeque.py:9(test_performance)
+  1000000    0.444    0.000    2.232    0.000 abstract_holodeque.py:305(popright)
+  1000000    0.423    0.000    1.513    0.000 abstract_holodeque.py:288(popleft)
+  1000000    0.436    0.000    1.396    0.000 abstract_holodeque.py:212(_rightmost_axis)
+  4000000    1.307    0.000    1.307    0.000 abstract_holodeque.py:178(_transform)
+  2000000    0.705    0.000    0.961    0.000 {built-in method builtins.max}
+  1000000    0.324    0.000    0.830    0.000 abstract_holodeque.py:245(pushright)
+  1000000    0.320    0.000    0.823    0.000 abstract_holodeque.py:228(pushleft)
+
+
+Notes on functions:
+1) _transform used to be _shear last time
+2) popright and peekright both call _rightmost_axis
+3) all push/pops call _transform
+
+Current bottlenecks (tottime):
+
+1) _transform could be faster, maybe try paralellizing it?
+2) _rightmost_axis could be parallelized to check rightmost_axis for all rows,
+      then checking for leftmost_axis to get correct one. Would save 0.5 sec of cumtime probably
