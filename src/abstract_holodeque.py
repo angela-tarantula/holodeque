@@ -181,16 +181,23 @@ class HolodequeBase[T: Hashable](ABC):
             reverse: If True, applies the inverse transformation; otherwise,
                      applies the direct transformation.
         """
-        sign: int = -1 if reverse else 1
         for i in range(self._shape):
             if i != axis:
                 for j in range(self._shape):
                     if left:
-                        # Add all other rows to row of axis
-                        self._matrix[axis][j] += sign * self._matrix[i][j]
+                        if reverse:
+                            # Subtract all other rows to row of axis
+                            self._matrix[axis][j] -= self._matrix[i][j]
+                        else:
+                            # Add all other rows to row of axis
+                            self._matrix[axis][j] += self._matrix[i][j]
                     else:
-                        # Add column of axis to all other columns
-                        self._matrix[j][i] += sign * self._matrix[j][axis]
+                        if reverse:
+                            # Substract column of axis to all other columns
+                            self._matrix[j][i] -= self._matrix[j][axis]
+                        else:
+                            # Add column of axis to all other columns
+                            self._matrix[j][i] += self._matrix[j][axis]
 
     def _leftmost_axis(self) -> int:
         """Obtains the axis that corresponds to the leftmost element of the holodeque.
