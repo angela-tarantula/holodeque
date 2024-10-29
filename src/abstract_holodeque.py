@@ -616,37 +616,37 @@ class HolodequeBase[T: Hashable](ABC):
         if isinstance(other, type(self)):
             return list(self) == list(other)
         else:
-            return NotImplemented
+            raise NotImplementedError
 
     def __ne__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) != list(other)
         else:
-            return NotImplemented
+            raise NotImplementedError
 
     def __lt__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) < list(other)
         else:
-            return NotImplemented
+            raise NotImplementedError
 
     def __le__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) <= list(other)
         else:
-            return NotImplemented
+            raise NotImplementedError
 
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) > list(other)
         else:
-            return NotImplemented
+            raise NotImplementedError
 
     def __ge__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) >= list(other)
         else:
-            return NotImplemented
+            raise NotImplementedError
 
     @compatible
     def __add__(self, other: Self) -> Self:
@@ -654,14 +654,16 @@ class HolodequeBase[T: Hashable](ABC):
             new_copy: Self = self.copy()
             new_copy.mergeright(other)
             return new_copy
-        return NotImplemented
+        else:
+            raise NotImplementedError
 
     @compatible
     def __iadd__(self, other: Self) -> Self:
         if isinstance(other, type(self)):
             self.mergeright(other)
             return self
-        return NotImplemented
+        else:
+            raise NotImplementedError
 
     @compatible
     def __sub__(self, other: Self) -> Self:
@@ -669,14 +671,54 @@ class HolodequeBase[T: Hashable](ABC):
             new_copy: Self = self.copy()
             new_copy.mergeleft(other)
             return new_copy
-        return NotImplemented
+        else:
+            raise NotImplementedError
 
     @compatible
     def __isub__(self, other: Self) -> Self:
         if isinstance(other, type(self)):
             self.mergeleft(other)
             return self
-        return NotImplemented
+        else:
+            raise NotImplementedError
+    
+    def __mul__(self, other: int) -> Self:
+        if isinstance(other, int):
+            if other < 0:
+                raise ValueError("Holodeque multiplication cannot be performed with a negative integer")
+            if other == 0:
+                return self.__class__()
+            if other == 1:
+                return self.copy()
+
+            result = self.copy()
+            for _ in range(other - 1):
+                result.mergeright(self)
+            return result
+        else:
+            raise NotImplementedError
+
+    def __rmul__(self, other: int) -> Self:
+        return self.__mul__(other)
+
+    def __imul__(self, other: int) -> Self:
+        if isinstance(other, int):
+            if other < 0:
+                raise ValueError("Holodeque multiplication cannot be performed with a negative integer")
+            elif other == 0:
+                self.clear()
+                return self
+            elif other == 1:
+                return self
+            elif self._maxlen is not None and self._maxlen< self._size * other:
+                raise ValueError("Holodeque multiplication would exceed maximum length")
+            temp = self.copy()
+            self.clear()
+            for _ in range(other):
+                self.mergeright(temp)
+            return self
+        else:
+            raise NotImplementedError
 
 
 class HolodequeIterator[U: Hashable]:
