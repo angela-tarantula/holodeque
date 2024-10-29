@@ -1,2 +1,13 @@
+[mypy]
+
 [tool.mypy]
 enable_incomplete_feature = ["NewGenericSyntax"]
+
+[mypy-hypothesis.given]
+ignore_missing_imports = true
+
+[mypy-hypothesis.assume]
+ignore_missing_imports = true
+
+[mypy-hypothesis.strategies]
+ignore_missing_imports = true

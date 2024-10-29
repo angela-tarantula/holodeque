@@ -1,6 +1,5 @@
 """profiling a lightweight binarydeque implementation at small n"""
 
-import timeit
 import cProfile
 import pstats
 

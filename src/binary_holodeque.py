@@ -1,7 +1,7 @@
 """A binary holodeque implementation."""
 
 from typing import Optional, Iterable, override
-from holodeque.src.abstract_holodeque import HolodequeBase, Matrix, MatrixRow
+from src.abstract_holodeque import HolodequeBase, Matrix
 
 
 class binarydeque(HolodequeBase[int]):

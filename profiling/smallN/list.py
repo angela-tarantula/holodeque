@@ -1,6 +1,5 @@
 """profiling list at small n"""
 
-import timeit
 import cProfile
 import pstats
 

@@ -12,9 +12,11 @@ corresponds to a unique output matrix.
 #       BUT BY DEFAULT, IT WILL USE ORDINARY LISTS TO REPRESENT THE BASE MATRIX.
 #       THE PURPOSE IS JUST TO DEVEOLOP A WORKING PROTOTYPE THAT'S FASTER THAN COLLECTIONS.DEQUE.
 
-from typing import Iterable, Iterator, Callable, Hashable, Optional, Any, Self, Protocol, SupportsInt
+from typing import Iterable, Iterator, Optional, Any, Self, Protocol, SupportsInt
+from collections.abc import Hashable, Callable
 from abc import ABC, abstractmethod
-import operator
+from functools import wraps
+
 
 # typing protocol
 class MatrixRow[R: SupportsInt](Protocol):
@@ -119,7 +121,6 @@ class HolodequeBase[T: Hashable](ABC):
         Returns:
             A square Matrix representing the initial state of the holodeque.
         """
-        ...
 
     @abstractmethod
     def _handle_overflow(self, from_left: bool = True) -> Optional[bool]:
@@ -137,7 +138,6 @@ class HolodequeBase[T: Hashable](ABC):
         Raises:
             IndexError: If the holodeque cannot handle the overflow.
         """
-        ...
 
     @abstractmethod
     def _get_axis(self, element: T) -> int:
@@ -154,7 +154,6 @@ class HolodequeBase[T: Hashable](ABC):
             TypeError: If the holodeque does not accept the type of the element.
             ValueError: If the holodeque does not accept the value of the element.
         """
-        ...
 
     @abstractmethod
     def _get_element(self, axis: int) -> T:
@@ -167,7 +166,6 @@ class HolodequeBase[T: Hashable](ABC):
         Returns:
             The element that corresponds to the axis.
         """
-        ...
 
     def _transform(self, axis: int, left: bool = True, reverse: bool = False) -> None:
         """Applies the specified transformation to the base matrix.
@@ -699,11 +697,3 @@ class HolodequeIterator[U: Hashable]:
         if not self._holodeq.size:
             raise StopIteration
         return self._holodeq.popright() if self._reverse else self._holodeq.popleft()
-
-        """
-        while self._holodeq.size:
-            if self._reverse:
-                return self._holodeq.popright()
-            else:
-                return self._holodeq.popleft()
-        raise StopIteration"""

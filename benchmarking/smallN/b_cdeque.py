@@ -3,7 +3,7 @@
 import timeit
 import random
 from collections import deque
-from holodeque.src.binary_holodeque import binarydeque as bdeque
+from src.binary_holodeque import binarydeque as bdeque
 
 # Test size
 small_size = 5

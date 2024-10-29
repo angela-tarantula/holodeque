@@ -1,5 +1,5 @@
 import random
-from holodeque.src.holodeque import holodeque
+from src.holodeque import holodeque
 
 
 class Parentheses:

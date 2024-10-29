@@ -1,7 +1,7 @@
 """A fixed-alphabet holodeque implementation."""
 
 from typing import Optional, Iterable, override, AbstractSet
-from holodeque.src.abstract_holodeque import HolodequeBase, Matrix, MatrixRow
+from src.abstract_holodeque import HolodequeBase, Matrix
 
 
 class holodeque[T](HolodequeBase[T]):
