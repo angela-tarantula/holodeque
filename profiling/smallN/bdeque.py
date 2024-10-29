@@ -1,5 +1,6 @@
+"""profiling binarydeque at small n"""
+
 import timeit
-from collections import deque
 from holodeque.src.binary_holodeque import binarydeque as bdeque
 
 import cProfile

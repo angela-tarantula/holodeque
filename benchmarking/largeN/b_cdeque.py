@@ -1,3 +1,5 @@
+"""benchmarking binarydeque against collections.deque for large n"""
+
 import timeit
 import random
 from collections import deque

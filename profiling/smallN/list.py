@@ -1,19 +1,18 @@
-import timeit
-from collections import deque
-from holodeque.src.binary_holodeque import binarydeque as bdeque
+"""profiling list at small n"""
 
+import timeit
 import cProfile
 import pstats
 
 
 def test_performance():
     # Example setup for testing performance of mdeque
-    d = deque()
+    l = []
     for _ in range(1_000_000):  # Simulate a large number of operations
-        d.append(1)
-        d.appendleft(0)
-        d.pop()
-        d.popleft()
+        l.append(1)
+        l.insert(0, 0)
+        l.pop(0)
+        l.pop()
 
 
 # Profile the function
