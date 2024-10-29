@@ -344,6 +344,27 @@ class HolodequeBase[T: Hashable](ABC):
             for elem in iterable:
                 self.pushright(elem)
 
+    @staticmethod
+    def compatible[V: HolodequeBase[T], W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
+        """Confirms that two holodeques accept the same input.
+        
+        Raises:
+            ValueError: If the holodeques have a different base matrix shape or their 
+              elements are mapped differently.
+        """
+        @wraps(func)
+        def wrapper(first: V, second: V) -> W:
+            if first._shape != second._shape:
+                raise ValueError(
+                    "Incompatible holodeques because their matrices have different shapes")
+            for axis in range(first._shape):
+                if first._get_element(axis) != second._get_element(axis):
+                    raise ValueError(
+                        "Incompatible holodeques because elements are mapped differently")
+            return func(first, second)
+        return wrapper
+
+    @compatible
     def mergeleft(self, other: Self) -> None:
         """Concatenate another holodeque to the left end of this holodeque.
 
@@ -360,15 +381,7 @@ class HolodequeBase[T: Hashable](ABC):
             raise ValueError(
                 "Incompatible holodeque because it would exceed maximum length")
         if self is other:
-            self._merge_self()
-            return None
-        if self._shape != other._shape:
-            raise ValueError(
-                "Incompatible holodeque because matrices have different shapes")
-        for axis in range(self._shape):
-            if self._get_element(axis) != other._get_element(axis):
-                raise ValueError(
-                    "Incompatible holodeque because elements are mapped differently")
+            return self._merge_self()
 
         for col in range(self._shape):
             # calculate new_col to replace col
@@ -382,6 +395,7 @@ class HolodequeBase[T: Hashable](ABC):
                 self._matrix[row][col] = new_col[row]
         self._size += other.size
 
+    @compatible
     def mergeright(self, other: Self) -> None:
         """Concatenate another holodeque to the right end of this holodeque.
 
@@ -398,15 +412,7 @@ class HolodequeBase[T: Hashable](ABC):
             raise ValueError(
                 "Incompatible holodeque because it would exceed maximum length")
         if self is other:
-            self._merge_self()
-            return None
-        if self._shape != other._shape:
-            raise ValueError(
-                "Incompatible holodeque because matrices have different shapes")
-        for axis in range(self._shape):
-            if self._get_element(axis) != other._get_element(axis):
-                raise ValueError(
-                    "Incompatible holodeque because elements are mapped differently")
+            return self._merge_self()
 
         for row in range(self._shape):
             # calculate new_row to replace row
@@ -642,29 +648,33 @@ class HolodequeBase[T: Hashable](ABC):
         else:
             return NotImplemented
 
-    def __add__(self, matdeq: Self) -> Self:
-        if isinstance(matdeq, type(self)):
+    @compatible
+    def __add__(self, other: Self) -> Self:
+        if isinstance(other, type(self)):
             new_copy: Self = self.copy()
-            new_copy.mergeright(matdeq)
+            new_copy.mergeright(other)
             return new_copy
         return NotImplemented
 
-    def __iadd__(self, matdeq: Self) -> Self:
-        if isinstance(matdeq, type(self)):
-            self.mergeright(matdeq)
+    @compatible
+    def __iadd__(self, other: Self) -> Self:
+        if isinstance(other, type(self)):
+            self.mergeright(other)
             return self
         return NotImplemented
 
-    def __sub__(self, matdeq: Self) -> Self:
-        if isinstance(matdeq, type(self)):
+    @compatible
+    def __sub__(self, other: Self) -> Self:
+        if isinstance(other, type(self)):
             new_copy: Self = self.copy()
-            new_copy.mergeleft(matdeq)
+            new_copy.mergeleft(other)
             return new_copy
         return NotImplemented
 
-    def __isub__(self, matdeq: Self) -> Self:
-        if isinstance(matdeq, type(self)):
-            self.mergeleft(matdeq)
+    @compatible
+    def __isub__(self, other: Self) -> Self:
+        if isinstance(other, type(self)):
+            self.mergeleft(other)
             return self
         return NotImplemented
 
@@ -680,7 +690,7 @@ class HolodequeIterator[U: Hashable]:
            yields elements from left to right.
     """
 
-    def __init__(self, holodeq: HolodequeBase[U], reverse: bool = False):
+    def __init__(self, holodeq: HolodequeBase[U], reverse: bool = False) -> None:
         """Initializes the iterator for a holodeque.
 
         Args:
