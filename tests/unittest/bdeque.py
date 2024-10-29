@@ -1,6 +1,6 @@
 import unittest
 from collections import deque
-from holodeque.src.binary_holodeque import binarydeque
+from src.binary_holodeque import binarydeque
 
 
 class TestBinarydeque(unittest.TestCase):
