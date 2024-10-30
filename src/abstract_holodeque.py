@@ -347,20 +347,25 @@ class HolodequeBase[T: Hashable](ABC):
     @staticmethod
     def compatible[V: HolodequeBase[T], W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
         """Confirms that two holodeques accept the same input.
-        
+
         Raises:
             ValueError: If the holodeques have a different base matrix shape or their 
               elements are mapped differently.
         """
         @wraps(func)
         def wrapper(first: V, second: V) -> W:
-            if first._shape != second._shape:
+            if not isinstance(second, type(first)):
+                raise TypeError(
+                    "incompatible holodeques because they are of different types")
+            elif first._shape != second._shape:
                 raise ValueError(
-                    "Incompatible holodeques because their matrices have different shapes")
-            for axis in range(first._shape):
-                if first._get_element(axis) != second._get_element(axis):
-                    raise ValueError(
-                        "Incompatible holodeques because elements are mapped differently")
+                    "incompatible holodeques because their matrices have different shapes")
+            try:
+                for axis in range(first._shape):
+                    second._get_axis(first._get_element(axis))
+            except ValueError:
+                raise ValueError(
+                    "incompatible holodeques because they accept different elements")
             return func(first, second)
         return wrapper
 
@@ -379,16 +384,17 @@ class HolodequeBase[T: Hashable](ABC):
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
-                "Incompatible holodeque because it would exceed maximum length")
+                "incompatible holodeque because it would exceed maximum length")
         if self is other:
             return self._merge_self()
-
+        convert: Callable[[int], int] = lambda x: other._get_axis(
+            self._get_element(x))
         for col in range(self._shape):
             # calculate new_col to replace col
             new_col: list[int] = [0] * self._shape
             for row in range(self._shape):
                 for x in range(self._shape):
-                    new_col[row] += other._matrix[row][x] * \
+                    new_col[row] += other._matrix[convert(row)][convert(row)] * \
                         self._matrix[x][col]
             # replace col with new_col
             for row in range(self._shape):
@@ -403,24 +409,25 @@ class HolodequeBase[T: Hashable](ABC):
 
         Args:
             other: Another holodeque to be concatenated on the right side.
-        
+
         Raises:
             ValueError: If the other holodeque has a different base matrix shape, 
               has its elements mapped differently, or if merge would exceed maxlen.
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
-                "Incompatible holodeque because it would exceed maximum length")
+                "incompatible holodeque because it would exceed maximum length")
         if self is other:
             return self._merge_self()
-
+        convert: Callable[[int], int] = lambda x: other._get_axis(
+            self._get_element(x))
         for row in range(self._shape):
             # calculate new_row to replace row
             new_row: list[int] = [0] * self._shape
             for col in range(self._shape):
                 for x in range(self._shape):
                     new_row[col] += self._matrix[row][x] * \
-                        other._matrix[x][col]
+                        other._matrix[convert(x)][convert(col)]
             # replace row with new_row
             for col in range(self._shape):
                 self._matrix[row][col] = new_row[col]
@@ -610,7 +617,7 @@ class HolodequeBase[T: Hashable](ABC):
         return "".join(result)
 
     def __hash__(self):
-        raise TypeError("Holodeque is unhashable")
+        raise TypeError("holodeque is unhashable")
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
@@ -655,7 +662,8 @@ class HolodequeBase[T: Hashable](ABC):
             new_copy.mergeright(other)
             return new_copy
         else:
-            raise NotImplementedError
+            raise TypeError(f"can only concatenate holodeque (not \"{
+                            type(other).__name__}\") to holodeque")
 
     @compatible
     def __iadd__(self, other: Self) -> Self:
@@ -663,7 +671,8 @@ class HolodequeBase[T: Hashable](ABC):
             self.mergeright(other)
             return self
         else:
-            raise NotImplementedError
+            raise TypeError(f"can only concatenate holodeque (not \"{
+                            type(other).__name__}\") to holodeque")
 
     @compatible
     def __sub__(self, other: Self) -> Self:
@@ -672,7 +681,8 @@ class HolodequeBase[T: Hashable](ABC):
             new_copy.mergeleft(other)
             return new_copy
         else:
-            raise NotImplementedError
+            raise TypeError(f"can only concatenate holodeque (not \"{
+                            type(other).__name__}\") to holodeque")
 
     @compatible
     def __isub__(self, other: Self) -> Self:
@@ -680,13 +690,12 @@ class HolodequeBase[T: Hashable](ABC):
             self.mergeleft(other)
             return self
         else:
-            raise NotImplementedError
-    
+            raise TypeError(f"can only concatenate holodeque (not \"{
+                            type(other).__name__}\") to holodeque")
+
     def __mul__(self, other: int) -> Self:
         if isinstance(other, int):
-            if other < 0:
-                raise ValueError("Holodeque multiplication cannot be performed with a negative integer")
-            if other == 0:
+            if other <= 0:
                 return self.__class__()
             if other == 1:
                 return self.copy()
@@ -696,29 +705,30 @@ class HolodequeBase[T: Hashable](ABC):
                 result.mergeright(self)
             return result
         else:
-            raise NotImplementedError
+            raise TypeError(
+                f"can't multiply sequence by non-int of type {type(other).__name__}")
 
     def __rmul__(self, other: int) -> Self:
         return self.__mul__(other)
 
     def __imul__(self, other: int) -> Self:
         if isinstance(other, int):
-            if other < 0:
-                raise ValueError("Holodeque multiplication cannot be performed with a negative integer")
-            elif other == 0:
+            if other <= 0:
                 self.clear()
                 return self
             elif other == 1:
                 return self
-            elif self._maxlen is not None and self._maxlen< self._size * other:
-                raise ValueError("Holodeque multiplication would exceed maximum length")
+            elif self._maxlen is not None and self._maxlen < self._size * other:
+                raise ValueError(
+                    "holodeque multiplication would exceed maximum length")
             temp = self.copy()
             self.clear()
             for _ in range(other):
                 self.mergeright(temp)
             return self
         else:
-            raise NotImplementedError
+            raise TypeError(
+                f"can't multiply sequence by non-int of type {type(other).__name__}")
 
 
 class HolodequeIterator[U: Hashable]:
