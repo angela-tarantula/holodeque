@@ -18,7 +18,7 @@ class holodeque[T](HolodequeBase[T]):
     """
 
     @override
-    def __init__(self, iterable: Iterable[T] = (), maxlen: Optional[int] = None, alphabet: AbstractSet[T] = set()) -> None:
+    def __init__(self, iterable: Iterable[T] = (), maxlen: Optional[int] = None, alphabet: AbstractSet[T] = frozenset()) -> None:
         """Initializes a holodeque with the provided iterable.
 
         Args:

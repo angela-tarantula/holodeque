@@ -7,7 +7,7 @@ the non-commutative nature of matrix multiplication, ensuring that each sequence
 corresponds to a unique output matrix.
 """
 
-# NOTE: BEFORE YOU JUDGE, I ACTUALLY PROFILED NUMPY AND IT'S SLOWER THAN LISTS FOR SMALL MATRIX SIZES.
+# NOTE: BEFORE YOU JUDGE, I ACTUALLY PROFILED NUMPY AND IT'S SLOWER THAN LISTS FOR SMALL MATRICES.
 #       I USED STRUCTURAL TYPING TO MAKE THE CLASS IMPLEMENTATION-AGNOSTIC, ENABLING FLEXIBILITY,
 #       BUT BY DEFAULT, IT WILL USE ORDINARY LISTS TO REPRESENT THE BASE MATRIX.
 #       THE PURPOSE IS JUST TO DEVEOLOP A WORKING PROTOTYPE THAT'S FASTER THAN COLLECTIONS.DEQUE.
@@ -349,23 +349,23 @@ class HolodequeBase[T: Hashable](ABC):
         """Confirms that two holodeques accept the same input.
 
         Raises:
-            ValueError: If the holodeques have a different base matrix shape or their 
-              elements are mapped differently.
+            ValueError: If the holodeques have a different base matrix shape or they 
+              accept different elements.
         """
         @wraps(func)
         def wrapper(first: V, second: V) -> W:
             if not isinstance(second, type(first)):
                 raise TypeError(
-                    "incompatible holodeques because they are of different types")
+                    f"incompatible types '{type(first).__name__}' and '{type(second).__name__}'")
             elif first._shape != second._shape:
                 raise ValueError(
                     "incompatible holodeques because their matrices have different shapes")
             try:
                 for axis in range(first._shape):
                     second._get_axis(first._get_element(axis))
-            except ValueError:
+            except ValueError as exc:
                 raise ValueError(
-                    "incompatible holodeques because they accept different elements")
+                    "incompatible holodeques because they accept different elements") from exc
             return func(first, second)
         return wrapper
 
@@ -530,7 +530,7 @@ class HolodequeBase[T: Hashable](ABC):
                     return
                 self.pushright(self.popleft())
                 index += 1
-            raise ValueError(f"{element} not in holodeque")
+            raise ValueError(f"'{element}' not in holodeque")
         finally:
             self.rotate(index)
 
@@ -620,40 +620,38 @@ class HolodequeBase[T: Hashable](ABC):
         raise TypeError("holodeque is unhashable")
 
     def __eq__(self, other: Any) -> bool:
-        if isinstance(other, type(self)):
-            return list(self) == list(other)
-        else:
-            raise NotImplementedError
+        return isinstance(other, type(self)) and list(self) == list(other)
 
     def __ne__(self, other: Any) -> bool:
-        if isinstance(other, type(self)):
-            return list(self) != list(other)
-        else:
-            raise NotImplementedError
+        return not isinstance(other, type(self)) or list(self) != list(other)
 
     def __lt__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) < list(other)
         else:
-            raise NotImplementedError
+            raise TypeError(f"'<' not supported between instances of holodeque and '{
+                            type(other).__name__}'")
 
     def __le__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) <= list(other)
         else:
-            raise NotImplementedError
+            raise TypeError(f"'<=' not supported between instances of holodeque and '{
+                            type(other).__name__}'")
 
     def __gt__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) > list(other)
         else:
-            raise NotImplementedError
+            raise TypeError(f"'>' not supported between instances of holodeque and '{
+                            type(other).__name__}'")
 
     def __ge__(self, other: Any) -> bool:
         if isinstance(other, type(self)):
             return list(self) >= list(other)
         else:
-            raise NotImplementedError
+            raise TypeError(f"'>=' not supported between instances of holodeque and '{
+                            type(other).__name__}'")
 
     @compatible
     def __add__(self, other: Self) -> Self:
@@ -693,42 +691,54 @@ class HolodequeBase[T: Hashable](ABC):
             raise TypeError(f"can only concatenate holodeque (not \"{
                             type(other).__name__}\") to holodeque")
 
-    def __mul__(self, other: int) -> Self:
-        if isinstance(other, int):
-            if other <= 0:
-                return self.__class__()
-            if other == 1:
+    def __mul__(self, multiple: int) -> Self:
+        if isinstance(multiple, int):
+            if multiple <= 0:
+                return self.__class__(iterable=[], maxlen=self._maxlen, **self._kwargs)
+            elif multiple == 1:
                 return self.copy()
-
             result = self.copy()
-            for _ in range(other - 1):
-                result.mergeright(self)
-            return result
+            if result._maxlen is not None and result._maxlen < result._size * multiple:
+                while result._size + self._size <= result._maxlen:
+                    result.mergeright(self)
+                for element in reversed(result):
+                    if result._size == result._maxlen:
+                        break
+                    result.pushleft(element)
+                return result
+            else:
+                for _ in range(multiple - 1):
+                    result.mergeright(self)
+                return result
         else:
             raise TypeError(
-                f"can't multiply sequence by non-int of type {type(other).__name__}")
+                f"can't multiply sequence by non-int of type {type(multiple).__name__}")
 
-    def __rmul__(self, other: int) -> Self:
-        return self.__mul__(other)
+    def __rmul__(self, multiple: int) -> Self:
+        return self.__mul__(multiple)
 
-    def __imul__(self, other: int) -> Self:
-        if isinstance(other, int):
-            if other <= 0:
+    def __imul__(self, multiple: int) -> Self:
+        if isinstance(multiple, int):
+            if multiple <= 0:
                 self.clear()
                 return self
-            elif other == 1:
+            elif multiple == 1:
                 return self
-            elif self._maxlen is not None and self._maxlen < self._size * other:
-                raise ValueError(
-                    "holodeque multiplication would exceed maximum length")
             temp = self.copy()
-            self.clear()
-            for _ in range(other):
+            if self._maxlen is not None and self._maxlen < self._size * multiple:
+                while self._size + temp._size <= self._maxlen:
+                    self.mergeright(temp)
+                for element in reversed(temp):
+                    if self._size == self._maxlen:
+                        break
+                    self.pushleft(element)
+                return self
+            for _ in range(multiple - 1):
                 self.mergeright(temp)
             return self
         else:
             raise TypeError(
-                f"can't multiply sequence by non-int of type {type(other).__name__}")
+                f"can't multiply sequence by non-int of type {type(multiple).__name__}")
 
 
 class HolodequeIterator[U: Hashable]:
