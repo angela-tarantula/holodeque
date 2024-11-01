@@ -13,7 +13,7 @@ corresponds to a unique output matrix.
 #       THE PURPOSE IS JUST TO DEVEOLOP A WORKING PROTOTYPE THAT'S FASTER THAN COLLECTIONS.DEQUE.
 
 from typing import Iterable, Iterator, Optional, Any, Self, Protocol, SupportsInt
-from collections.abc import Hashable, Callable
+from collections.abc import Hashable, Callable, Set
 from abc import ABC, abstractmethod
 from functools import wraps
 
@@ -55,14 +55,14 @@ class HolodequeBase[T: Hashable](ABC):
         _shape: The dimension of the base matrix (its width and height).
         _size: The current number of elements in the holodeque.
         _maxlen: The maximum allowed size of the holodeque; None if unbounded.
+        _alphabet: The set of unique elements that the holodeque can contain.
         _kwargs: A dictionary for additional optional parameters.
     """
 
-    def __init__(self, iterable: Iterable[T] = (), maxlen: Optional[int] = None, **kwargs) -> None:
+    def __init__(self, maxlen: Optional[int] = None, **kwargs) -> None:
         """Initializes a holodeque with the provided iterable.
 
         Args:
-            iterable: An Iterable of elements to populate the holodeque.
             maxlen: Optional maximum size of the holodeque; if not None, restricts
                     the number of elements.
             kwargs: Additional keyword arguments for use by subclasses.
@@ -70,32 +70,34 @@ class HolodequeBase[T: Hashable](ABC):
         Raises:
             ValueError: If maxlen is negative.
         """
-        self._matrix: Matrix[int] = self._initialize_matrix()
-        self._shape: int = len(self._matrix)
-        self._size: int = 0
-
         if maxlen is not None and maxlen < 0:
             raise ValueError("maxlen must be non-negative")
-
+        self._matrix: Matrix[int]
+        self._shape: int
+        self._alphabet: Set[T]
+        self._size: int = 0
         self._maxlen: Optional[int] = maxlen
         self._kwargs = kwargs
-
-        self.extendright(iterable)
 
     @property
     def shape(self) -> int:
         """The dimension of the holodeque base matrix."""
         return self._shape
-
+    
     @property
     def size(self) -> int:
         """The current number of elements in the holodeque."""
         return self._size
-
+    
     @property
     def maxlen(self) -> Optional[int]:
         """The maximum size of the holodeque."""
         return self._maxlen
+    
+    @property
+    def alphabet(self) -> Set[T]:
+        """The set of unique elements that the holodeque can contain."""
+        return self._alphabet
 
     @staticmethod
     def identity(n: int) -> Matrix[int]:
@@ -110,34 +112,9 @@ class HolodequeBase[T: Hashable](ABC):
         Raises:
             ValueError: If n is not a positive integer.
         """
-        if n <= 0:
+        if n < 1:
             raise ValueError("n must be positive.")
         return [[int(i == j) for j in range(n)] for i in range(n)]
-
-    @abstractmethod
-    def _initialize_matrix(self) -> Matrix[int]:
-        """Initializes the base matrix for the holodeque.
-
-        Returns:
-            A square Matrix representing the initial state of the holodeque.
-        """
-
-    @abstractmethod
-    def _handle_overflow(self, from_left: bool = True) -> Optional[bool]:
-        """Handles overflow when the holodeque reaches its maximum size.
-
-        This method defines the behavior of the holodeque when an attempt is made
-        to push a new element into a full holodeque.
-
-        Args:
-            from_left: A bool indicating the origin of the push.
-
-        Returns:
-            An optional bool indicating the success of the overflow handling.
-
-        Raises:
-            IndexError: If the holodeque cannot handle the overflow.
-        """
 
     @abstractmethod
     def _get_axis(self, element: T) -> int:
@@ -151,7 +128,6 @@ class HolodequeBase[T: Hashable](ABC):
             The int axis that corresponds to the element.
 
         Raises:
-            TypeError: If the holodeque does not accept the type of the element.
             ValueError: If the holodeque does not accept the value of the element.
         """
 
@@ -166,6 +142,19 @@ class HolodequeBase[T: Hashable](ABC):
         Returns:
             The element that corresponds to the axis.
         """
+        
+    def _handle_overflow(self, from_left: bool = True) -> None:
+        """Handles overflow when the holodeque reaches its maximum size.
+
+        Pops an element from the side opposite the push.
+
+        Args:
+            from_left: A bool indicating the origin of the push.
+        """
+        if from_left:
+            self.popright()
+        else:
+            self.popleft()
 
     def _transform(self, axis: int, left: bool = True, reverse: bool = False) -> None:
         """Applies the specified transformation to the base matrix.
@@ -180,22 +169,17 @@ class HolodequeBase[T: Hashable](ABC):
                      applies the direct transformation.
         """
         for i in range(self._shape):
-            if i != axis:
-                for j in range(self._shape):
-                    if left:
-                        if reverse:
-                            # Subtract all other rows to row of axis
-                            self._matrix[axis][j] -= self._matrix[i][j]
-                        else:
-                            # Add all other rows to row of axis
-                            self._matrix[axis][j] += self._matrix[i][j]
-                    else:
-                        if reverse:
-                            # Substract column of axis to all other columns
-                            self._matrix[j][i] -= self._matrix[j][axis]
-                        else:
-                            # Add column of axis to all other columns
-                            self._matrix[j][i] += self._matrix[j][axis]
+            if i == axis: continue
+            for j in range(self._shape):
+                match (left, reverse):
+                    case (True, True):
+                        self._matrix[i][j] -= self._matrix[axis][j] # Subtract row of axis from other rows
+                    case (True, False):
+                        self._matrix[i][j] += self._matrix[axis][j] # Add row of axis to other rows
+                    case (False, True):
+                        self._matrix[j][i] -= self._matrix[j][axis] # Subtract column of axis from other columns
+                    case (False, False):
+                        self._matrix[j][i] += self._matrix[j][axis] # Add column of axis to other columns
 
     def _leftmost_axis(self) -> int:
         """Obtains the axis that corresponds to the leftmost element of the holodeque.
@@ -221,8 +205,7 @@ class HolodequeBase[T: Hashable](ABC):
                              key=lambda x: self._matrix[x][-1])
         if self._size == 1:
             return left_axis
-        else:
-            return min(range(self._shape), key=lambda x: self._matrix[left_axis][x])
+        return min(range(self._shape), key=lambda x: self._matrix[left_axis][x])
 
     def pushleft(self, element: T) -> None:
         """Add an element to the left end of the holodeque.
@@ -237,7 +220,6 @@ class HolodequeBase[T: Hashable](ABC):
         index: int = self._get_axis(element)
         if self._size == self._maxlen:
             self._handle_overflow(from_left=True)
-
         self._transform(index, left=True, reverse=False)
         self._size += 1
 
@@ -254,7 +236,6 @@ class HolodequeBase[T: Hashable](ABC):
         index: int = self._get_axis(element)
         if self._size == self._maxlen:
             self._handle_overflow(from_left=False)
-
         self._transform(index, left=False, reverse=False)
         self._size += 1
 
@@ -295,7 +276,6 @@ class HolodequeBase[T: Hashable](ABC):
         """
         if not self._size:
             raise IndexError("pop from an empty holodeque")
-
         left_axis: int = self._leftmost_axis()
         self._transform(left_axis, left=True, reverse=True)
         self._size -= 1
@@ -312,7 +292,6 @@ class HolodequeBase[T: Hashable](ABC):
         """
         if not self._size:
             raise IndexError("pop from an empty holodeque")
-
         right_axis: int = self._rightmost_axis()
         self._transform(right_axis, left=False, reverse=True)
         self._size -= 1
@@ -356,16 +335,10 @@ class HolodequeBase[T: Hashable](ABC):
         def wrapper(first: V, second: V) -> W:
             if not isinstance(second, type(first)):
                 raise TypeError(
-                    f"incompatible types '{type(first).__name__}' and '{type(second).__name__}'")
-            elif first._shape != second._shape:
+                    f"incompatible type '{type(second).__name__}' with '{type(first).__name__}'")
+            elif first._alphabet != second._alphabet:
                 raise ValueError(
-                    "incompatible holodeques because their matrices have different shapes")
-            try:
-                for axis in range(first._shape):
-                    second._get_axis(first._get_element(axis))
-            except ValueError as exc:
-                raise ValueError(
-                    "incompatible holodeques because they accept different elements") from exc
+                    "incompatible holodeque because it contains an incompatible element")
             return func(first, second)
         return wrapper
 
@@ -536,7 +509,9 @@ class HolodequeBase[T: Hashable](ABC):
 
     def copy(self: Self) -> Self:
         """Create and return a new holodeque with identical contents."""
-        return self.__class__(iterable=self, maxlen=self._maxlen, **self._kwargs)
+        new_holodeque: Self = self.__class__(maxlen=self._maxlen, **self._kwargs)
+        new_holodeque.mergeright(self)
+        return new_holodeque
 
     def __len__(self) -> int:
         return self._size
@@ -609,11 +584,12 @@ class HolodequeBase[T: Hashable](ABC):
                 self.pushright(self.popleft())
 
     def __repr__(self) -> str:
-        result: list[str] = [f"holodeque({list(self)}"]
+        result: list[str] = [f"{type(self).__name__}({list(self)}"]
         if self._maxlen is not None:
             result.append(f", maxlen={self._maxlen}")
         for key, value in self._kwargs.items():
             result.append(f", {key}={value}")
+        result.append(")")
         return "".join(result)
 
     def __hash__(self):
@@ -694,7 +670,7 @@ class HolodequeBase[T: Hashable](ABC):
     def __mul__(self, multiple: int) -> Self:
         if isinstance(multiple, int):
             if multiple <= 0:
-                return self.__class__(iterable=[], maxlen=self._maxlen, **self._kwargs)
+                return self.__class__(maxlen=self._maxlen, **self._kwargs)
             elif multiple == 1:
                 return self.copy()
             result = self.copy()

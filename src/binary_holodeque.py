@@ -8,52 +8,35 @@ class binarydeque(HolodequeBase[int]):
     """A holodeque that only accepts 0 and 1.
 
     Attributes:
-        _matrix: A square matrix representing the state of the binary_holodeque.
+        _matrix: A square matrix representing the state of the holodeque.
         _shape: The dimension of the base matrix (its width and height).
-        _size: The current number of elements in the binary_holodeque.
+        _size: The current number of elements in the holodeque.
         _maxlen: The maximum allowed size of the holodeque; None if unbounded.
+        _alphabet: The set of unique elements that the holodeque can contain.
+        _kwargs: A dictionary for additional optional parameters.
     """
 
     @override
-    def __init__(self, iterable: Iterable[int] = (), maxlen: Optional[int] = None) -> None:
-        """Initializes a binary_holodeque with the provided iterable.
+    def __init__(self, iterable: Iterable[int] = (), maxlen: Optional[int] = None, **kwargs) -> None:
+        """Initializes a holodeque with the provided iterable.
 
         Args:
-            iterable: An Iterable of elements to populate the binary_holodeque.
+            iterable: An Iterable of elements to populate the holodeque.
             maxlen: Optional maximum size of the holodeque; if not None, restricts
                     the number of elements.
+            _kwargs: A dictionary for additional optional parameters.
         """
-        super().__init__(iterable=iterable, maxlen=maxlen)
-
-    @override
-    def _initialize_matrix(self) -> Matrix[int]:
-        """Initializes the base matrix for the binary_holodeque.
-
-        Returns:
-            A 2x2 Matrix to represent the initial state of the binary_holodeque.
-        """
-        return self.identity(2)
-
-    @override
-    def _handle_overflow(self, from_left: bool = True) -> None:
-        """Handles overflow when the binary_holodeque reaches its maximum size.
-
-        Pops an element from the side opposite the push.
-
-        Args:
-            from_left: A bool indicating the origin of the push.
-        """
-        if from_left:
-            self.popright()
-        else:
-            self.popleft()
+        super().__init__(maxlen=maxlen, **kwargs)
+        self._matrix: Matrix[int] = self.identity(2)
+        self._shape: int = 2
+        self._alphabet: frozenset[int] = frozenset([0, 1])
+        self.extendright(iterable)
 
     @override
     def _get_axis(self, element: int) -> int:
-        if not isinstance(element, int):
-            raise TypeError(f"Expected an integer, but got {type(element).__name__}.")
-        if element not in {0, 1}:
-            raise ValueError(f"Invalid value {element}. The binary_holodeque accepts only 0 and 1.")
+        if element != 0 and element != 1:
+            raise ValueError(f"Invalid value {
+                             element}. This holodeque accepts only 0 and 1.")
         return element
 
     @override

@@ -1,10 +1,11 @@
 """A fixed-alphabet holodeque implementation."""
 
-from typing import Optional, Iterable, override, AbstractSet
+from typing import Optional, Iterable, override
 from src.abstract_holodeque import HolodequeBase, Matrix
+from collections.abc import Hashable, Set
 
 
-class holodeque[T](HolodequeBase[T]):
+class holodeque[T: Hashable](HolodequeBase[T]):
     """A holodeque with a predefined alphabet (acceptable input).   
 
     Attributes:
@@ -12,59 +13,37 @@ class holodeque[T](HolodequeBase[T]):
         _shape: The dimension of the base matrix (its width and height).
         _size: The current number of elements in the holodeque.
         _maxlen: The maximum allowed size of the holodeque; None if unbounded.
-        _element_tuple: A tuple of acceptable input for the holodeque.
-        _element_map: A hashmap that converts each acceptable input to a unique
-          index of _matrix.
+        _alphabet: The set of unique elements that the holodeque can contain.
+        _element_tuple: An tuple of acceptable input for the holodeque.
+        _element_map: A hashmap that maps each containable element to an index in _element_tuple.
+        _kwargs: A dictionary for additional optional parameters.
     """
 
     @override
-    def __init__(self, iterable: Iterable[T] = (), maxlen: Optional[int] = None, alphabet: AbstractSet[T] = frozenset()) -> None:
+    def __init__(self, alphabet: Set[T], iterable: Iterable[T] = (), maxlen: Optional[int] = None, **kwargs) -> None:
         """Initializes a holodeque with the provided iterable.
 
         Args:
+            alphabet: The set of unique elements that the holodeque can contain.
             iterable: An Iterable of elements to populate the holodeque.
             maxlen: Optional maximum size of the holodeque; if not None, restricts
                     the number of elements.
-            alphabet: A set of acceptable input for the holodeque.
+            _kwargs: A dictionary for additional optional parameters.
         """
+        super().__init__(maxlen=maxlen, alphabet=frozenset(alphabet), **kwargs)
+        if not alphabet:
+            raise ValueError("alphabet must be non-empty")
+        self._matrix: Matrix[int] = self.identity(len(alphabet))
+        self._shape: int = len(alphabet)
+        self._alphabet: frozenset[T] = frozenset(alphabet)
         self._element_tuple: tuple[T, ...] = tuple(alphabet)
         self._element_map: dict[T, int] = {
             letter: i for i, letter in enumerate(self._element_tuple)}
-        super().__init__(iterable=iterable, maxlen=maxlen, alphabet=frozenset(alphabet))
-
-    @property
-    def alphabet(self) -> Iterable[T]:
-        """The set of input the holodeque accepts."""
-        return self._element_map.keys()
-
-    @override
-    def _initialize_matrix(self) -> Matrix[int]:
-        """Initializes the base matrix for the holodeque.
-
-        Returns:
-            An nxn Matrix representing the initial state of the holodeque,
-              where n is the number of acceptable input.
-        """
-        return self.identity(len(self._element_tuple))
-
-    @override
-    def _handle_overflow(self, from_left: bool = True) -> None:
-        """Handles overflow when the holodeque reaches its maximum size.
-
-        Pops an element from the side opposite the push.
-
-        Args:
-            from_left: A bool indicating the origin of the push.
-        """
-        if from_left:
-            self.popright()
-        else:
-            self.popleft()
-
+        self.extendright(iterable)
 
     @override
     def _get_axis(self, element: T) -> int:
-        if element not in self._element_map:
+        if element not in self._alphabet:
             raise ValueError(f"The holodeque does not accept the element: {element}")
         return self._element_map[element]
 
