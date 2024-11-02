@@ -31,8 +31,8 @@ class holodeque[T: Hashable](BaseHolodeque[T]):
             _kwargs: A dictionary for additional optional parameters.
         """
         super().__init__(maxlen=maxlen, alphabet=frozenset(alphabet), **kwargs)
-        if not alphabet:
-            raise ValueError("alphabet must be non-empty")
+        if len(alphabet) < 2:
+            raise ValueError("alphabet must contain at least 2 elements")
         self._matrix: Matrix[int] = self.identity(len(alphabet))
         self._shape: int = len(alphabet)
         self._alphabet: frozenset[T] = frozenset(alphabet)
