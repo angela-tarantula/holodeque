@@ -7,11 +7,6 @@ the non-commutative nature of matrix multiplication, ensuring that each sequence
 corresponds to a unique output matrix.
 """
 
-# NOTE: BEFORE YOU JUDGE, I ACTUALLY PROFILED NUMPY AND IT'S SLOWER THAN LISTS FOR SMALL MATRICES.
-#       I USED STRUCTURAL TYPING TO MAKE THE CLASS IMPLEMENTATION-AGNOSTIC, ENABLING FLEXIBILITY,
-#       BUT BY DEFAULT, IT WILL USE ORDINARY LISTS TO REPRESENT THE BASE MATRIX.
-#       THE PURPOSE IS JUST TO DEVEOLOP A WORKING PROTOTYPE THAT'S FASTER THAN COLLECTIONS.DEQUE.
-
 from typing import Iterable, Iterator, Optional, Any, Self, Protocol, SupportsInt
 from collections.abc import Hashable, Callable, Set
 from abc import ABC, abstractmethod
@@ -47,7 +42,7 @@ class Matrix[S: SupportsInt](Protocol):
         ...
 
 
-class HolodequeBase[T: Hashable](ABC):
+class BaseHolodeque[T: Hashable](ABC):
     """Abstract base class for the holodeque data structure.
 
     Attributes:
@@ -83,17 +78,17 @@ class HolodequeBase[T: Hashable](ABC):
     def shape(self) -> int:
         """The dimension of the holodeque base matrix."""
         return self._shape
-    
+
     @property
     def size(self) -> int:
         """The current number of elements in the holodeque."""
         return self._size
-    
+
     @property
     def maxlen(self) -> Optional[int]:
         """The maximum size of the holodeque."""
         return self._maxlen
-    
+
     @property
     def alphabet(self) -> Set[T]:
         """The set of unique elements that the holodeque can contain."""
@@ -142,7 +137,7 @@ class HolodequeBase[T: Hashable](ABC):
         Returns:
             The element that corresponds to the axis.
         """
-        
+
     def _handle_overflow(self, from_left: bool = True) -> None:
         """Handles overflow when the holodeque reaches its maximum size.
 
@@ -169,17 +164,22 @@ class HolodequeBase[T: Hashable](ABC):
                      applies the direct transformation.
         """
         for i in range(self._shape):
-            if i == axis: continue
+            if i == axis:
+                continue
             for j in range(self._shape):
                 match (left, reverse):
                     case (True, True):
-                        self._matrix[i][j] -= self._matrix[axis][j] # Subtract row of axis from other rows
+                        # Subtract other rows from row of axis
+                        self._matrix[axis][j] -= self._matrix[i][j]
                     case (True, False):
-                        self._matrix[i][j] += self._matrix[axis][j] # Add row of axis to other rows
+                        # Add row other rows to row of axis
+                        self._matrix[axis][j] += self._matrix[i][j]
                     case (False, True):
-                        self._matrix[j][i] -= self._matrix[j][axis] # Subtract column of axis from other columns
+                        # Subtract column of axis from other columns
+                        self._matrix[j][i] -= self._matrix[j][axis]
                     case (False, False):
-                        self._matrix[j][i] += self._matrix[j][axis] # Add column of axis to other columns
+                        # Add column of axis to other columns
+                        self._matrix[j][i] += self._matrix[j][axis]
 
     def _leftmost_axis(self) -> int:
         """Obtains the axis that corresponds to the leftmost element of the holodeque.
@@ -324,7 +324,7 @@ class HolodequeBase[T: Hashable](ABC):
                 self.pushright(elem)
 
     @staticmethod
-    def compatible[V: HolodequeBase[T], W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
+    def compatible[V: BaseHolodeque[T], W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
         """Confirms that two holodeques accept the same input.
 
         Raises:
@@ -509,7 +509,8 @@ class HolodequeBase[T: Hashable](ABC):
 
     def copy(self: Self) -> Self:
         """Create and return a new holodeque with identical contents."""
-        new_holodeque: Self = self.__class__(maxlen=self._maxlen, **self._kwargs)
+        new_holodeque: Self = self.__class__(
+            maxlen=self._maxlen, **self._kwargs)
         new_holodeque.mergeright(self)
         return new_holodeque
 
@@ -728,14 +729,14 @@ class HolodequeIterator[U: Hashable]:
            yields elements from left to right.
     """
 
-    def __init__(self, holodeq: HolodequeBase[U], reverse: bool = False) -> None:
+    def __init__(self, holodeq: BaseHolodeque[U], reverse: bool = False) -> None:
         """Initializes the iterator for a holodeque.
 
         Args:
             holodeq: A holodeque to iterate over.
             reverse: A bool indicating the direction of iteration.
         """
-        self._holodeq: HolodequeBase[U] = holodeq.copy()
+        self._holodeq: BaseHolodeque[U] = holodeq.copy()
         self._reverse: bool = reverse
 
     def __iter__(self) -> Iterator[U]:

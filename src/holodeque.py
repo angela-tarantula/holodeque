@@ -1,11 +1,11 @@
 """A fixed-alphabet holodeque implementation."""
 
 from typing import Optional, Iterable, override
-from src.abstract_holodeque import HolodequeBase, Matrix
+from src.base_holodeque import BaseHolodeque, Matrix
 from collections.abc import Hashable, Set
 
 
-class holodeque[T: Hashable](HolodequeBase[T]):
+class holodeque[T: Hashable](BaseHolodeque[T]):
     """A holodeque with a predefined alphabet (acceptable input).   
 
     Attributes:
@@ -44,7 +44,8 @@ class holodeque[T: Hashable](HolodequeBase[T]):
     @override
     def _get_axis(self, element: T) -> int:
         if element not in self._alphabet:
-            raise ValueError(f"The holodeque does not accept the element: {element}")
+            raise ValueError(
+                f"The holodeque does not accept the element: {element}")
         return self._element_map[element]
 
     @override

@@ -1,10 +1,10 @@
 """A binary holodeque implementation."""
 
 from typing import Optional, Iterable, override
-from src.abstract_holodeque import HolodequeBase, Matrix
+from src.base_holodeque import BaseHolodeque, Matrix
 
 
-class binarydeque(HolodequeBase[int]):
+class binarydeque(BaseHolodeque[int]):
     """A holodeque that only accepts 0 and 1.
 
     Attributes:
