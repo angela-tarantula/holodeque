@@ -304,11 +304,8 @@ class BaseHolodeque[T: Hashable](ABC):
             iterable: An Iterable of elements to add to the
               holodeque from the left-hand side.
         """
-        if isinstance(iterable, type(self)):
-            self.mergeleft(iterable)
-        else:
-            for elem in iterable:
-                self.pushleft(elem)
+        for elem in iterable:
+            self.pushleft(elem)
 
     def extendright(self, iterable: Iterable[T]) -> None:
         """Extend the right end of the holodeque with an iterable.
@@ -367,7 +364,7 @@ class BaseHolodeque[T: Hashable](ABC):
             new_col: list[int] = [0] * self._shape
             for row in range(self._shape):
                 for x in range(self._shape):
-                    new_col[row] += other._matrix[convert(row)][convert(row)] * \
+                    new_col[row] += other._matrix[convert(row)][convert(x)] * \
                         self._matrix[x][col]
             # replace col with new_col
             for row in range(self._shape):
@@ -506,6 +503,39 @@ class BaseHolodeque[T: Hashable](ABC):
             raise ValueError(f"'{element}' not in holodeque")
         finally:
             self.rotate(index)
+            
+    def insert(self, index: int, element: T) -> None:
+        if index < 0:
+            index += self._size
+        if index < 0 or index >= self._size:
+            raise IndexError("holodeque index out of range")
+        if index > self._size // 2:
+            index -= self._size
+        if index >= 0:
+            for _ in range(index):
+                self.pushright(self.popleft())
+            self.pushleft(element)
+            for _ in range(index):
+                self.pushleft(self.popright())
+        else:
+            index = -index
+            for _ in range(index):
+                self.pushleft(self.popright())
+            self.pushright(element)
+            for _ in range(index):
+                self.pushright(self.popleft())
+                
+    def index(self, element: T, start: int = 0, stop: int = -1) -> int:
+        if start < 0:
+            start += self._size
+        if stop < 0:
+            stop += self._size
+        if start < 0 or start >= self._size or stop < 0 or stop >= self._size:
+            raise IndexError("holodeque index out of range")
+        for i, element in enumerate(self):
+            if i >= start and i < stop and element == element:
+                return i
+        raise ValueError(f"'{element}' not in holodeque")
 
     def copy(self: Self) -> Self:
         """Create and return a new holodeque with identical contents."""
@@ -540,7 +570,7 @@ class BaseHolodeque[T: Hashable](ABC):
                 self.pushright(self.popleft())
         return desired_item
 
-    def __setitem__(self, index: int, value: T) -> None:
+    def __setitem__(self, index: int, element: T) -> None:
         if index < 0:
             index += self._size
         if index < 0 or index >= self._size:
@@ -551,7 +581,7 @@ class BaseHolodeque[T: Hashable](ABC):
             for _ in range(index):
                 self.pushright(self.popleft())
             self.popleft()
-            self.pushleft(value)
+            self.pushleft(element)
             for _ in range(index):
                 self.pushleft(self.popright())
         else:
@@ -559,7 +589,7 @@ class BaseHolodeque[T: Hashable](ABC):
             for _ in range(index):
                 self.pushleft(self.popright())
             self.popright()
-            self.pushright(value)
+            self.pushright(element)
             for _ in range(index):
                 self.pushright(self.popleft())
 
@@ -644,25 +674,6 @@ class BaseHolodeque[T: Hashable](ABC):
     def __iadd__(self, other: Self) -> Self:
         if isinstance(other, type(self)):
             self.mergeright(other)
-            return self
-        else:
-            raise TypeError(f"can only concatenate holodeque (not \"{
-                            type(other).__name__}\") to holodeque")
-
-    @compatible
-    def __sub__(self, other: Self) -> Self:
-        if isinstance(other, type(self)):
-            new_copy: Self = self.copy()
-            new_copy.mergeleft(other)
-            return new_copy
-        else:
-            raise TypeError(f"can only concatenate holodeque (not \"{
-                            type(other).__name__}\") to holodeque")
-
-    @compatible
-    def __isub__(self, other: Self) -> Self:
-        if isinstance(other, type(self)):
-            self.mergeleft(other)
             return self
         else:
             raise TypeError(f"can only concatenate holodeque (not \"{
