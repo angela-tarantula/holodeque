@@ -75,6 +75,21 @@ def deque_simulation_strategy(draw):
 
 
 """Tests"""
+# the trick here is to assume as little as possible about correctness of a method
+# until it is proven. So I don't do things like
+#   deque1.pop()
+#   assert list(deque1)[:-1] == list(deque2)
+# until after pop() is proven not to show an error, decrements the length,
+# modifies the internal matrix, returns the matrix to some previous state, etc.
+# I can't even do list(deque1) yet because it requires proving __iter__ is
+# correct first. And pop uses peek under the hood, so peek must be tested
+# before pop. And before testing general properties (n-deque + pop -> (n-1)-deque)
+# I prove the base case first (1-deque + pop -> 0-deque). This is not actually for
+# induction, as n -> n-1 would catch the 1 -> 0 case, but it's a good way to
+# tease out what the bug really is. If 1 -> 0 fails I have a different bug than
+# 1 -> 0 success with n -> n-1 failure. Anyway, that's why the progress may appear
+# slow and contrived (60 tests for just push/pop/peek/concatenate). It's designed
+# so that the earliest failure is most revealing, that way I just run "pytest -x".
 
 
 @given(alphabet_strategy)
@@ -789,19 +804,16 @@ def test_deque_simulation(quartet):
     hd = holodeque(alphabet, lst1)
     d = deque(lst1)
     assert list(d) == list(hd)
-    index = 0
-    for decision in actions:
+    for data, decision in zip(lst2, actions):
         match decision:
             case "pushleft":
-                d.appendleft(lst2[index])
-                hd.pushleft(lst2[index])
-                index += 1
+                d.appendleft(data)
+                hd.pushleft(data)
             case "pushright":
-                d.append(lst2[index])
-                hd.pushright(lst2[index])
-                index += 1
+                d.append(data)
+                hd.pushright(data)
             case "popleft":
-                if d or hd:
+                if d and hd:
                     assert d.popleft() == hd.popleft()
                 else:
                     assert not d and not hd
@@ -810,7 +822,7 @@ def test_deque_simulation(quartet):
                     with pytest.raises(IndexError):
                         hd.popleft()
             case "popright":
-                if d or hd:
+                if d and hd:
                     assert d.pop() == hd.popright()
                 else:
                     assert not d and not hd
@@ -819,7 +831,7 @@ def test_deque_simulation(quartet):
                     with pytest.raises(IndexError):
                         hd.popright()
             case "peekleft":
-                if d or hd:
+                if d and hd:
                     assert d[0] == hd.peekleft()
                 else:
                     assert not d and not hd
@@ -828,7 +840,7 @@ def test_deque_simulation(quartet):
                     with pytest.raises(IndexError):
                         hd.peekleft()
             case "peekright":
-                if d or hd:
+                if d and hd:
                     assert d[-1] == hd.peekright()
                 else:
                     assert not d and not hd
