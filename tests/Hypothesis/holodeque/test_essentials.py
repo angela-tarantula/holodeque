@@ -1,10 +1,7 @@
 import pytest
 from src.holodeque import holodeque
 from hypothesis import given, assume, settings, strategies as st
-from itertools import permutations
-from functools import reduce
-from collections import Counter
-from math import factorial
+from collections import deque
 
 """Draw strategies"""
 
@@ -62,6 +59,19 @@ def two_lists(draw):
     lst2 = draw(st.lists(st.sampled_from(list(alphabet)),
                 min_size=length, max_size=length))
     return alphabet, lst1, lst2
+
+
+@st.composite
+def deque_simulation_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst1 = draw(st.lists(st.sampled_from(list(alphabet))))
+    options = ["pushright", "pushleft", "popright",
+               "popleft", "peekright", "peekleft"]
+    actions = draw(
+        st.lists(st.sampled_from(options)))
+    lst2 = draw(st.lists(st.sampled_from(list(alphabet)),
+                min_size=len(actions), max_size=len(actions)))
+    return alphabet, lst1, lst2, actions
 
 
 """Tests"""
@@ -756,12 +766,14 @@ def test_copy(pair):
             hd1._matrix[i][j] == hd2._matrix[convert(i)][convert(j)]
     assert hd1._maxlen == hd2._maxlen
     assert hd1._kwargs == hd2._kwargs
-    
+
+
 @given(alphabet_and_initial_list_strategy())
 def test_iterator(pair):
     alphabet, lst = pair
     hd = holodeque(alphabet, lst)
     assert list(hd) == lst
+
 
 @given(alphabet_and_initial_list_strategy())
 def test_reversed(pair):
@@ -770,27 +782,58 @@ def test_reversed(pair):
     assert list(reversed(hd)) == list(reversed(lst))
 
 
-
-
-# takes 1 hour (3717.04s) but confirms uniqueness up to 10 (11+ can be proven mathematically)
-# @settings(deadline=None)
-# @given(alphabet_and_initial_list_strategy_small_version())
-# def test_all_permutations_are_unique(pair):
-#     alphabet, lst = pair
-#     matrices = set()
-
-#     def matrixtuple(matrix):
-#         return tuple(tuple(row) for row in matrix)
-
-#     for perm in permutations(range(len(lst))):
-#         hd = holodeque(alphabet)
-#         for val in perm:
-#             hd.pushright(lst[val])
-#         matrices.add(matrixtuple(hd._matrix))
-
-#     counts = Counter(lst)
-#     total_elements = sum(counts.values())
-#     total_permutations = factorial(total_elements)
-#     divisor = reduce(lambda x, y: x * factorial(y), counts.values(), 1)
-#     combinations = total_permutations // divisor
-#     assert len(matrices) == combinations
+@settings(max_examples=5_000, deadline=None)
+@given(deque_simulation_strategy())
+def test_deque_simulation(quartet):
+    alphabet, lst1, lst2, actions = quartet
+    hd = holodeque(alphabet, lst1)
+    d = deque(lst1)
+    assert list(d) == list(hd)
+    index = 0
+    for decision in actions:
+        match decision:
+            case "pushleft":
+                d.appendleft(lst2[index])
+                hd.pushleft(lst2[index])
+                index += 1
+            case "pushright":
+                d.append(lst2[index])
+                hd.pushright(lst2[index])
+                index += 1
+            case "popleft":
+                if d or hd:
+                    assert d.popleft() == hd.popleft()
+                else:
+                    assert not d and not hd
+                    with pytest.raises(IndexError):
+                        d.popleft()
+                    with pytest.raises(IndexError):
+                        hd.popleft()
+            case "popright":
+                if d or hd:
+                    assert d.pop() == hd.popright()
+                else:
+                    assert not d and not hd
+                    with pytest.raises(IndexError):
+                        d.pop()
+                    with pytest.raises(IndexError):
+                        hd.popright()
+            case "peekleft":
+                if d or hd:
+                    assert d[0] == hd.peekleft()
+                else:
+                    assert not d and not hd
+                    with pytest.raises(IndexError):
+                        d[0]
+                    with pytest.raises(IndexError):
+                        hd.peekleft()
+            case "peekright":
+                if d or hd:
+                    assert d[-1] == hd.peekright()
+                else:
+                    assert not d and not hd
+                    with pytest.raises(IndexError):
+                        d[-1]
+                    with pytest.raises(IndexError):
+                        hd.peekright()
+        assert list(d) == list(hd)

@@ -1,0 +1,11 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.6, pytest-8.3.3, pluggy-1.5.0
+rootdir: /Users/angelaliss/code/holodeque
+configfile: pyproject.toml
+plugins: hypothesis-6.115.5
+collected 62 items
+
+tests/Hypothesis/holodeque/test_primitives.py .......................... [ 41%]
+....................................                                     [100%]
+
+============================= 62 passed in 25.87s ==============================
