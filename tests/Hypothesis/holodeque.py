@@ -673,6 +673,105 @@ def test_extendleft(trio):
     assert hd1._matrix == hd2._matrix
 
 
+@given(two_lists())
+def test_mergeright(trio):
+    alphabet, lst1, lst2 = trio
+    hd1 = holodeque(alphabet, lst1)
+    hd2 = holodeque(alphabet, lst2)
+    hd1.mergeright(hd2)
+    hd3 = holodeque(alphabet, lst1 + lst2)
+    assert hd1._matrix == hd3._matrix
+
+
+@given(two_lists())
+def test_mergeleft(trio):
+    alphabet, lst1, lst2 = trio
+    hd1 = holodeque(alphabet, lst1)
+    hd2 = holodeque(alphabet, lst2)
+    hd1.mergeleft(hd2)
+    hd3 = holodeque(alphabet, lst2 + lst1)
+    assert hd1._matrix == hd3._matrix
+
+
+@given(two_lists())
+def test_mergeleft_is_opposite_of_mergeright(trio):
+    alphabet, lst1, lst2 = trio
+    hd1 = holodeque(alphabet, lst1)
+    hd2 = holodeque(alphabet, lst2)
+    hd3 = holodeque(alphabet, lst1)
+    hd4 = holodeque(alphabet, lst2)
+    hd1.mergeright(hd2)
+    hd4.mergeleft(hd3)
+    assert hd1._matrix == hd4._matrix
+
+
+@given(alphabet_and_initial_list_strategy())
+def test_mergeself(pair):
+    alphabet, lst = pair
+    hd1 = holodeque(alphabet, lst)
+    hd2 = holodeque(alphabet, lst)
+    hd1.mergeright(hd1)
+    hd2.mergeleft(hd2)
+    hd3 = holodeque(alphabet, lst + lst)
+    assert hd1._matrix == hd2._matrix == hd3._matrix
+
+
+@given(alphabet_and_initial_list_strategy())
+def test_mergeright_requires_holodeque(pair):
+    alphabet, lst = pair
+    hd = holodeque(alphabet)
+    with pytest.raises(TypeError):
+        hd.mergeright(lst)
+
+
+@given(alphabet_and_initial_list_strategy())
+def test_mergeleft_requires_holodeque(pair):
+    alphabet, lst = pair
+    hd = holodeque(alphabet)
+    with pytest.raises(TypeError):
+        hd.mergeleft(lst)
+
+
+@given(two_lists())
+def test_extendright_with_another_holodeque_calls_mergeright(trio):
+    alphabet, lst1, lst2 = trio
+    hd1 = holodeque(alphabet, lst1)
+    hd2 = holodeque(alphabet, lst1)
+    hd3 = holodeque(alphabet, lst2)
+    hd4 = holodeque(alphabet, lst2)
+    hd1.extendright(hd3)
+    hd2.mergeright(hd4)
+    assert hd1._matrix == hd2._matrix
+
+
+@given(alphabet_and_initial_list_strategy())
+def test_copy(pair):
+    alphabet, lst = pair
+    hd1 = holodeque(alphabet, lst)
+    hd2 = hd1.copy()
+    assert hd1._alphabet == hd2._alphabet
+    def convert(x): return hd2._get_axis(hd1._get_element(x))
+    for i in range(len(alphabet)):
+        for j in range(len(alphabet)):
+            hd1._matrix[i][j] == hd2._matrix[convert(i)][convert(j)]
+    assert hd1._maxlen == hd2._maxlen
+    assert hd1._kwargs == hd2._kwargs
+    
+@given(alphabet_and_initial_list_strategy())
+def test_iterator(pair):
+    alphabet, lst = pair
+    hd = holodeque(alphabet, lst)
+    assert list(hd) == lst
+
+@given(alphabet_and_initial_list_strategy())
+def test_reversed(pair):
+    alphabet, lst = pair
+    hd = holodeque(alphabet, lst)
+    assert list(reversed(hd)) == list(reversed(lst))
+
+
+
+
 # takes 1 hour (3717.04s) but confirms uniqueness up to 10 (11+ can be proven mathematically)
 # @settings(deadline=None)
 # @given(alphabet_and_initial_list_strategy_small_version())

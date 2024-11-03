@@ -314,11 +314,13 @@ class BaseHolodeque[T: Hashable](ABC):
             iterable: An Iterable of elements to add to the
               holodeque from the right-hand side.
         """
-        if isinstance(iterable, type(self)):
-            self.mergeright(iterable)
-        else:
+        try:
+            self.mergeright(iterable) # type: ignore
+        except (TypeError, ValueError):
             for elem in iterable:
                 self.pushright(elem)
+        except Exception as e:
+            raise e
 
     @staticmethod
     def compatible[V: BaseHolodeque[T], W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
@@ -335,7 +337,7 @@ class BaseHolodeque[T: Hashable](ABC):
                     f"incompatible type '{type(second).__name__}' with '{type(first).__name__}'")
             elif first._alphabet != second._alphabet:
                 raise ValueError(
-                    "incompatible holodeque because it contains an incompatible element")
+                    "incompatible holodeque because it accepts different elements")
             return func(first, second)
         return wrapper
 
@@ -356,7 +358,7 @@ class BaseHolodeque[T: Hashable](ABC):
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
         if self is other:
-            return self._merge_self()
+            other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
             self._get_element(x))
         for col in range(self._shape):
@@ -388,7 +390,7 @@ class BaseHolodeque[T: Hashable](ABC):
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
         if self is other:
-            return self._merge_self()
+            other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
             self._get_element(x))
         for row in range(self._shape):
@@ -402,26 +404,6 @@ class BaseHolodeque[T: Hashable](ABC):
             for col in range(self._shape):
                 self._matrix[row][col] = new_row[col]
         self._size += other.size
-
-    def _merge_self(self) -> None:
-        """Merge the holodeque with itself.
-
-        Squares the base matrix of the holodeque in-place.
-        """
-        square: Matrix[int] = [
-            [
-                sum(
-                    self._matrix[row][k] * self._matrix[k][col]
-                    for k in range(self._shape)
-                )
-                for col in range(self._shape)
-            ]
-            for row in range(self._shape)
-        ]
-        for i in range(self._shape):
-            for j in range(self._shape):
-                self._matrix[i][j] = square[i][j]
-        self._size *= 2
 
     def clear(self) -> None:
         """Empties the holodeque.
@@ -503,7 +485,7 @@ class BaseHolodeque[T: Hashable](ABC):
             raise ValueError(f"'{element}' not in holodeque")
         finally:
             self.rotate(index)
-            
+
     def insert(self, index: int, element: T) -> None:
         if index < 0:
             index += self._size
@@ -524,7 +506,7 @@ class BaseHolodeque[T: Hashable](ABC):
             self.pushright(element)
             for _ in range(index):
                 self.pushright(self.popleft())
-                
+
     def index(self, element: T, start: int = 0, stop: int = -1) -> int:
         if start < 0:
             start += self._size
