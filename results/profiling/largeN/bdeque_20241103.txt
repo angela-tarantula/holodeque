@@ -1,0 +1,30 @@
+Sun Nov  3 10:58:27 2024    profile_results
+
+         23000004 function calls in 172.064 seconds
+
+   Ordered by: cumulative time
+   List reduced from 18 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000  172.064  172.064 {built-in method builtins.exec}
+        1    0.000    0.000  172.064  172.064 <string>:1(<module>)
+        1    0.732    0.732  172.064  172.064 bdeque.py:10(test_performance)
+  4000000  166.231    0.000  166.231    0.000 base_holodeque.py:154(_transform)
+  1000000    0.462    0.000   50.257    0.000 base_holodeque.py:226(pushright)
+  1000000    0.437    0.000   50.124    0.000 base_holodeque.py:210(pushleft)
+  1000000    0.627    0.000   36.007    0.000 base_holodeque.py:284(popright)
+  1000000    0.603    0.000   34.943    0.000 base_holodeque.py:268(popleft)
+  1000000    0.547    0.000    1.800    0.000 base_holodeque.py:195(_rightmost_axis)
+  2000000    0.996    0.000    1.309    0.000 {built-in method builtins.max}
+
+So with large N, tottime becomes less useful because majority of total time is spent
+transforming the matrix. Cumtime tells us the push operations are more costly now,
+but that is also because (a) adding large numbers cost marginally more than subtracting
+them, and (b) push operations must be sequential (adding each row to target row) while
+pop operations can be parallelized by the compiler (each row can subtract the target
+row independently). In a binarydeque, (b) could make it about 2x faster, which could
+explain the cumtime gap.
+
+Anyway, the takeaway is that large numbers do make it slower, and in particular the
+bottleneck switches from pop to push operations, which could therefore benefit from
+parallelization for larger numbers.

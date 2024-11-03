@@ -1,17 +1,11 @@
 """benchmarking binarydeque against collections.deque for small n"""
 
 import timeit
-import random
 from collections import deque
 from src.binary_holodeque import binarydeque as bdeque
 
-# Test size
-small_size = 5
-
-# Create test data (all 0s and 1s)
-small_data = [0, 1] * (small_size // 2)
-random.shuffle(small_data)
-d, bd = deque(small_data), bdeque(small_data)
+d: deque = deque([0,1,0,1,0])
+bd = bdeque([0,1,0,1,0])
 
 
 def test_operation(module_name, operation, deque_type):

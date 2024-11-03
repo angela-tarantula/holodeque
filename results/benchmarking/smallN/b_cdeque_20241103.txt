@@ -1,0 +1,54 @@
+Testing append/pushright on small data:
+deque: 0.0005872910842299461
+bdeque: 0.017406500061042607
+Testing appendleft/pushleft on small data:
+deque: 0.0005211660172790289
+bdeque: 0.011732792016118765
+Testing pop/popright on small data:
+deque: 0.0005047080339863896
+bdeque: 0.016546124941669405
+Testing popleft on small data:
+deque: 0.0005095000378787518
+bdeque: 0.011654625064693391
+
+So basically the binarydeque is slowe than collections.deque by a factor of 100x,
+which is actually pretty good considering two things:
+    1) collections.deque is written in C, which gives it a natural speed advantage
+        by a factor of about 100x, according to Google
+    2) collections.deque is implemented as a dynamically with fixed-size blocks:
+
+            * Textbook implementations of doubly-linked lists store one datum
+            * per link, but that gives them a 200% memory overhead (a prev and
+            * next link for each datum) and it costs one malloc() call per data
+            * element.  By using fixed-length blocks, the link to data ratio is
+            * significantly improved and there are proportionally fewer calls
+            * to malloc() and free().  The data blocks of consecutive pointers
+            * also improve cache locality...
+
+            /* The block length may be set to any number over 1.  Larger numbers
+            * reduce the number of calls to the memory allocator, give faster
+            * indexing and rotation, and reduce the link to data overhead ratio.
+            * Making the block length a power of two speeds-up the modulo
+            * and division calculations in deque_item() and deque_ass_item().
+            */
+
+            #define BLOCKLEN 64
+            #define CENTER ((BLOCKLEN - 1) / 2)
+            #define MAXFREEBLOCKS 16
+                from https://github.com/python/cpython/blob/3.13/Modules/_collectionsmodule.c
+        
+        So it achieves a speed boost over textbook linked list deques by allocating
+        more memory at less frequent intervals. The cdeque link-data ratio is 2:64 = 30%
+        instead of 200%, it has cache-locality within blocks, and calls realloc less
+        frequently. But this makes it behave more like a pre-allocated array for small N.
+        It is trading up-front memory for speed. Each block is
+        (64 slots * 8 bytes * 8 bits/byte) = 4096 bits for all small N. Whereas for any N,
+        binarydeque is only using 1.3N bits. Concretely, when N=100 bits, bdeque is using
+        about 130 bits in the matrix, but cdeque is using 4096 until N exceeds that.
+
+Takeaway:
+We have to see it in C++ to be sure, but bdeque is most definitely faster than the *textbook*
+implementation of a deque, and *might* be faster than cdeque for small N. It would be cool if
+the holodeque can be faster than a circular-array deque for small N. I'm essentially testing
+if matrix operations can be faster than array operations for small N, and if so, putting it
+to use.

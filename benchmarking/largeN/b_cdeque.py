@@ -1,7 +1,6 @@
 """benchmarking binarydeque against collections.deque for large n"""
 
 import timeit
-import random
 from collections import deque
 from src.binary_holodeque import binarydeque as bdeque
 
@@ -10,7 +9,6 @@ large_size = 1_000_000
 
 # Create test data (all 0s and 1s)
 large_data = [0, 1] * (large_size // 2)
-random.shuffle(large_data)
 d, bd = deque(large_data), bdeque(large_data)
 
 
