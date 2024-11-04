@@ -43,14 +43,14 @@ class TestBinarydeque(unittest.TestCase):
         self.bdeque.extendleft([0, 1])
         self.assertEqual(list(self.dq), list(self.bdeque))
 
-    def test_mergeright(self):
+    def test_concatright(self):
         bdeque2 = binarydeque([1, 0])
-        self.bdeque.mergeright(bdeque2)
+        self.bdeque.concatright(bdeque2)
         self.assertEqual(list(self.bdeque), [0, 1, 1, 0])
 
-    def test_mergeleft(self):
+    def test_concatleft(self):
         bdeque2 = binarydeque([1, 0])
-        self.bdeque.mergeleft(bdeque2)
+        self.bdeque.concatleft(bdeque2)
         self.assertEqual(list(self.bdeque), [1, 0, 0, 1])
 
     def test_copy(self):

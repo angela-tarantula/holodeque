@@ -699,73 +699,73 @@ def test_extendleft(trio):
 
 
 @given(two_lists())
-def test_mergeright(trio):
+def test_concatright(trio):
     alphabet, lst1, lst2 = trio
     hd1 = holodeque(alphabet, lst1)
     hd2 = holodeque(alphabet, lst2)
-    hd1.mergeright(hd2)
+    hd1.concatright(hd2)
     hd3 = holodeque(alphabet, lst1 + lst2)
     assert hd1._matrix == hd3._matrix
 
 
 @given(two_lists())
-def test_mergeleft(trio):
+def test_concatleft(trio):
     alphabet, lst1, lst2 = trio
     hd1 = holodeque(alphabet, lst1)
     hd2 = holodeque(alphabet, lst2)
-    hd1.mergeleft(hd2)
+    hd1.concatleft(hd2)
     hd3 = holodeque(alphabet, lst2 + lst1)
     assert hd1._matrix == hd3._matrix
 
 
 @given(two_lists())
-def test_mergeleft_is_opposite_of_mergeright(trio):
+def test_concatleft_is_opposite_of_concatright(trio):
     alphabet, lst1, lst2 = trio
     hd1 = holodeque(alphabet, lst1)
     hd2 = holodeque(alphabet, lst2)
     hd3 = holodeque(alphabet, lst1)
     hd4 = holodeque(alphabet, lst2)
-    hd1.mergeright(hd2)
-    hd4.mergeleft(hd3)
+    hd1.concatright(hd2)
+    hd4.concatleft(hd3)
     assert hd1._matrix == hd4._matrix
 
 
 @given(alphabet_and_initial_list_strategy())
-def test_mergeself(pair):
+def test_concatself(pair):
     alphabet, lst = pair
     hd1 = holodeque(alphabet, lst)
     hd2 = holodeque(alphabet, lst)
-    hd1.mergeright(hd1)
-    hd2.mergeleft(hd2)
+    hd1.concatright(hd1)
+    hd2.concatleft(hd2)
     hd3 = holodeque(alphabet, lst + lst)
     assert hd1._matrix == hd2._matrix == hd3._matrix
 
 
 @given(alphabet_and_initial_list_strategy())
-def test_mergeright_requires_holodeque(pair):
+def test_concatright_requires_holodeque(pair):
     alphabet, lst = pair
     hd = holodeque(alphabet)
     with pytest.raises(TypeError):
-        hd.mergeright(lst)
+        hd.concatright(lst)
 
 
 @given(alphabet_and_initial_list_strategy())
-def test_mergeleft_requires_holodeque(pair):
+def test_concatleft_requires_holodeque(pair):
     alphabet, lst = pair
     hd = holodeque(alphabet)
     with pytest.raises(TypeError):
-        hd.mergeleft(lst)
+        hd.concatleft(lst)
 
 
 @given(two_lists())
-def test_extendright_with_another_holodeque_calls_mergeright(trio):
+def test_extendright_with_another_holodeque_calls_concatright(trio):
     alphabet, lst1, lst2 = trio
     hd1 = holodeque(alphabet, lst1)
     hd2 = holodeque(alphabet, lst1)
     hd3 = holodeque(alphabet, lst2)
     hd4 = holodeque(alphabet, lst2)
     hd1.extendright(hd3)
-    hd2.mergeright(hd4)
+    hd2.concatright(hd4)
     assert hd1._matrix == hd2._matrix
 
 

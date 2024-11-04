@@ -315,7 +315,7 @@ class BaseHolodeque[T: Hashable](ABC):
               holodeque from the right-hand side.
         """
         try:
-            self.mergeright(iterable) # type: ignore
+            self.concatright(iterable) # type: ignore
         except (TypeError, ValueError):
             for elem in iterable:
                 self.pushright(elem)
@@ -342,7 +342,7 @@ class BaseHolodeque[T: Hashable](ABC):
         return wrapper
 
     @compatible
-    def mergeleft(self, other: Self) -> None:
+    def concatleft(self, other: Self) -> None:
         """Concatenate another holodeque to the left end of this holodeque.
 
         Performs in-place left multiplication of their base matrices.
@@ -374,7 +374,7 @@ class BaseHolodeque[T: Hashable](ABC):
         self._size += other.size
 
     @compatible
-    def mergeright(self, other: Self) -> None:
+    def concatright(self, other: Self) -> None:
         """Concatenate another holodeque to the right end of this holodeque.
 
         Performs in-place right multiplication of their base matrices.
@@ -523,7 +523,7 @@ class BaseHolodeque[T: Hashable](ABC):
         """Create and return a new holodeque with identical contents."""
         new_holodeque: Self = self.__class__(
             maxlen=self._maxlen, **self._kwargs)
-        new_holodeque.mergeright(self)
+        new_holodeque.concatright(self)
         return new_holodeque
 
     def __len__(self) -> int:
@@ -646,7 +646,7 @@ class BaseHolodeque[T: Hashable](ABC):
     def __add__(self, other: Self) -> Self:
         if isinstance(other, type(self)):
             new_copy: Self = self.copy()
-            new_copy.mergeright(other)
+            new_copy.concatright(other)
             return new_copy
         else:
             raise TypeError(f"can only concatenate holodeque (not \"{
@@ -655,7 +655,7 @@ class BaseHolodeque[T: Hashable](ABC):
     @compatible
     def __iadd__(self, other: Self) -> Self:
         if isinstance(other, type(self)):
-            self.mergeright(other)
+            self.concatright(other)
             return self
         else:
             raise TypeError(f"can only concatenate holodeque (not \"{
@@ -670,7 +670,7 @@ class BaseHolodeque[T: Hashable](ABC):
             result = self.copy()
             if result._maxlen is not None and result._maxlen < result._size * multiple:
                 while result._size + self._size <= result._maxlen:
-                    result.mergeright(self)
+                    result.concatright(self)
                 for element in reversed(result):
                     if result._size == result._maxlen:
                         break
@@ -678,7 +678,7 @@ class BaseHolodeque[T: Hashable](ABC):
                 return result
             else:
                 for _ in range(multiple - 1):
-                    result.mergeright(self)
+                    result.concatright(self)
                 return result
         else:
             raise TypeError(
@@ -697,14 +697,14 @@ class BaseHolodeque[T: Hashable](ABC):
             temp = self.copy()
             if self._maxlen is not None and self._maxlen < self._size * multiple:
                 while self._size + temp._size <= self._maxlen:
-                    self.mergeright(temp)
+                    self.concatright(temp)
                 for element in reversed(temp):
                     if self._size == self._maxlen:
                         break
                     self.pushleft(element)
                 return self
             for _ in range(multiple - 1):
-                self.mergeright(temp)
+                self.concatright(temp)
             return self
         else:
             raise TypeError(
