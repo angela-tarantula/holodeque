@@ -3,11 +3,13 @@
 import cProfile
 import pstats
 
+
 class Node:
     def __init__(self, value=None, next=None, prev=None):
-         self.value = value
-         self.next = next
-         self.prev = prev
+        self.value = value
+        self.next = next
+        self.prev = prev
+
 
 class LinkedList:
 
@@ -16,21 +18,21 @@ class LinkedList:
         self.tail = Node()
         self.head.next = self.tail
         self.tail.prev = self.head
-    
+
     def pushright(self, value):
         new_node = Node(value)
         new_node.prev = self.tail.prev
         new_node.next = self.tail
         self.tail.prev.next = new_node
         self.tail.prev = new_node
-    
+
     def pushleft(self, value):
         new_node = Node(value)
         new_node.next = self.head.next
         new_node.prev = self.head
         self.head.next.prev = new_node
         self.head.next = new_node
-    
+
     def popright(self):
         if self.tail.prev == self.head:
             return None
@@ -38,7 +40,7 @@ class LinkedList:
         self.tail.prev = self.tail.prev.prev
         self.tail.prev.next = self.tail
         return value
-    
+
     def popleft(self):
         if self.head.next == self.tail:
             return None
@@ -46,6 +48,7 @@ class LinkedList:
         self.head.next = self.head.next.next
         self.head.next.prev = self.head
         return value
+
 
 def test_performance():
     # Example setup for testing performance of mdeque

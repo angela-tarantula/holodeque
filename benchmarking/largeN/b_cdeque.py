@@ -2,6 +2,7 @@
 
 import timeit
 from collections import deque
+
 from src.binary_holodeque import binarydeque as bdeque
 
 # Test size

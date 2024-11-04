@@ -2,10 +2,11 @@
 
 import timeit
 from collections import deque
+
 from src.binary_holodeque import binarydeque as bdeque
 
-d: deque = deque([0,1,0,1,0])
-bd = bdeque([0,1,0,1,0])
+d: deque = deque([0, 1, 0, 1, 0])
+bd = bdeque([0, 1, 0, 1, 0])
 
 
 def test_operation(module_name, operation, deque_type):

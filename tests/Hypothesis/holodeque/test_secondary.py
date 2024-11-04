@@ -1,10 +1,13 @@
-import pytest
-from src.holodeque import holodeque
-from hypothesis import given, assume, settings, strategies as st
-from itertools import permutations
-from functools import reduce
 from collections import Counter, deque
+from functools import reduce
+from itertools import permutations
 from math import factorial
+
+import pytest
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
+
+from src.holodeque import holodeque
 
 """Draw strategies"""
 
@@ -78,4 +81,3 @@ def deque_simulation_strategy(draw):
 
 
 """Tests"""
-

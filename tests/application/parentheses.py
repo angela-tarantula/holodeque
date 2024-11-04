@@ -1,6 +1,7 @@
-import unittest
 import time
-from examples.parentheses import Parentheses, StackSolution, HolodequeSolution
+import unittest
+
+from examples.parentheses import HolodequeSolution, Parentheses, StackSolution
 
 
 class TestParenthesesSolutions(unittest.TestCase):

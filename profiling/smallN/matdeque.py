@@ -3,14 +3,15 @@
 import cProfile
 import pstats
 
+
 class ezdeque:
-    
+
     def __init__(self):
         self.topleft = 1000000000
         self.topright = 100000000
         self.bottomleft = 100000000
         self.bottomright = 1000000000
-    
+
     def pushleft(self, val):
         if val:
             self.bottomleft += self.topleft
@@ -18,7 +19,7 @@ class ezdeque:
         else:
             self.topleft += self.bottomleft
             self.topright += self.bottomright
-    
+
     def pushright(self, val):
         if val:
             self.topleft += self.topright
@@ -26,7 +27,7 @@ class ezdeque:
         else:
             self.topright += self.topleft
             self.bottomright += self.bottomleft
-    
+
     def popleft(self):
         if self.topleft >= self.bottomleft:
             self.topleft -= self.bottomleft
@@ -36,7 +37,7 @@ class ezdeque:
             self.bottomleft -= self.topleft
             self.bottomright -= self.topright
             return 0
-    
+
     def popright(self):
         if self.topleft <= self.topright:
             self.topright -= self.topleft
@@ -46,6 +47,7 @@ class ezdeque:
             self.topleft -= self.topright
             self.bottomleft -= self.bottomright
             return 1
+
 
 def test_performance():
     # Example setup for testing performance of mdeque

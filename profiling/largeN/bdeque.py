@@ -1,11 +1,12 @@
 """profiling binarydeque at large n"""
 
-from src.binary_holodeque import binarydeque as bdeque
-
 import cProfile
 import pstats
 
-bd = bdeque(x%2 for x in range(1_000_000))
+from src.binary_holodeque import binarydeque as bdeque
+
+bd = bdeque(x % 2 for x in range(1_000_000))
+
 
 def test_performance():
     # Example setup for testing performance of mdeque

@@ -7,10 +7,11 @@ the non-commutative nature of matrix multiplication, ensuring that each sequence
 corresponds to a unique output matrix.
 """
 
-from typing import Iterable, Iterator, Optional, Any, Self, Protocol, SupportsInt
-from collections.abc import Hashable, Callable, Set
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Hashable, Set
 from functools import wraps
+from typing import (Any, Iterable, Iterator, Optional, Protocol, Self,
+                    SupportsInt)
 
 
 # typing protocol
@@ -315,7 +316,7 @@ class BaseHolodeque[T: Hashable](ABC):
               holodeque from the right-hand side.
         """
         try:
-            self.concatright(iterable) # type: ignore
+            self.concatright(iterable)  # type: ignore
         except (TypeError, ValueError):
             for elem in iterable:
                 self.pushright(elem)

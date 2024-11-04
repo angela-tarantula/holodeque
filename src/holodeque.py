@@ -1,8 +1,9 @@
 """A fixed-alphabet holodeque implementation."""
 
-from typing import Optional, Iterable, override
-from src.base_holodeque import BaseHolodeque, Matrix
 from collections.abc import Hashable, Set
+from typing import Iterable, Optional, override
+
+from src.base_holodeque import BaseHolodeque, Matrix
 
 
 class holodeque[T: Hashable](BaseHolodeque[T]):

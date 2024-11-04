@@ -1,7 +1,7 @@
 """profiling collections.deque at small n"""
-from collections import deque
 import cProfile
 import pstats
+from collections import deque
 
 
 def test_performance():

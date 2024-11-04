@@ -1,7 +1,10 @@
-import pytest
-from src.holodeque import holodeque
-from hypothesis import given, assume, settings, strategies as st
 from collections import deque
+
+import pytest
+from hypothesis import assume, given, settings
+from hypothesis import strategies as st
+
+from src.holodeque import holodeque
 
 """Draw strategies"""
 

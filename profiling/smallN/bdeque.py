@@ -1,9 +1,9 @@
 """profiling binarydeque at small n"""
 
-from src.binary_holodeque import binarydeque as bdeque
-
 import cProfile
 import pstats
+
+from src.binary_holodeque import binarydeque as bdeque
 
 
 def test_performance():
