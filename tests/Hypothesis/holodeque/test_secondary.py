@@ -68,6 +68,19 @@ def two_lists(draw):
 
 
 @st.composite
+def two_alphabets_two_lists(draw):
+    alphabet1 = draw(alphabet_strategy)
+    alphabet2 = draw(alphabet_strategy)
+    length1 = draw(st.integers(min_value=0, max_value=100))
+    length2 = draw(st.integers(min_value=0, max_value=100))
+    lst1 = draw(st.lists(st.sampled_from(list(alphabet1)),
+                min_size=length1, max_size=length1))
+    lst2 = draw(st.lists(st.sampled_from(list(alphabet2)),
+                min_size=length2, max_size=length2))
+    return alphabet1, alphabet2, lst1, lst2
+
+
+@st.composite
 def deque_simulation_strategy(draw):
     alphabet = draw(alphabet_strategy)
     lst1 = draw(st.lists(st.sampled_from(list(alphabet))))
@@ -81,3 +94,7 @@ def deque_simulation_strategy(draw):
 
 
 """Tests"""
+
+# count, contain, rotate, remove, insert, index, get/set/del item, repr, hash, < etc,
+# compatible add radd & iadd, no sub or div, mult rmult & imult
+# maxlen and its effects

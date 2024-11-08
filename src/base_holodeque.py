@@ -645,22 +645,20 @@ class BaseHolodeque[T: Hashable](ABC):
 
     @compatible
     def __add__(self, other: Self) -> Self:
-        if isinstance(other, type(self)):
-            new_copy: Self = self.copy()
-            new_copy.concatright(other)
-            return new_copy
-        else:
-            raise TypeError(f"can only concatenate holodeque (not \"{
-                            type(other).__name__}\") to holodeque")
+        new_copy: Self = self.copy()
+        new_copy.concatright(other)
+        return new_copy
+
+    @compatible
+    def __radd__(self, other: Self) -> Self:
+        new_copy: Self = self.copy()
+        new_copy.concatright(other)
+        return new_copy
 
     @compatible
     def __iadd__(self, other: Self) -> Self:
-        if isinstance(other, type(self)):
-            self.concatright(other)
-            return self
-        else:
-            raise TypeError(f"can only concatenate holodeque (not \"{
-                            type(other).__name__}\") to holodeque")
+        self.concatright(other)
+        return self
 
     def __mul__(self, multiple: int) -> Self:
         if isinstance(multiple, int):

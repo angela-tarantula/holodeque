@@ -22,7 +22,7 @@ alphabet_strategy = st.sets(
 
 @st.composite
 def alphabet_and_element_strategy(draw):
-    alphabet = draw(st.frozensets(st.integers(), min_size=2))
+    alphabet = draw(alphabet_strategy)
     element = draw(st.sampled_from(list(alphabet)))
     return alphabet, element
 
@@ -65,6 +65,19 @@ def two_lists(draw):
 
 
 @st.composite
+def two_alphabets_two_lists(draw):
+    alphabet1 = draw(alphabet_strategy)
+    alphabet2 = draw(alphabet_strategy)
+    length1 = draw(st.integers(min_value=0, max_value=100))
+    length2 = draw(st.integers(min_value=0, max_value=100))
+    lst1 = draw(st.lists(st.sampled_from(list(alphabet1)),
+                min_size=length1, max_size=length1))
+    lst2 = draw(st.lists(st.sampled_from(list(alphabet2)),
+                min_size=length2, max_size=length2))
+    return alphabet1, alphabet2, lst1, lst2
+
+
+@st.composite
 def deque_simulation_strategy(draw):
     alphabet = draw(alphabet_strategy)
     lst1 = draw(st.lists(st.sampled_from(list(alphabet))))
@@ -98,7 +111,23 @@ def deque_simulation_strategy(draw):
 @given(alphabet_strategy)
 def test_empty_contains_nothing(alphabet):
     hd = holodeque(alphabet)
-    assert not hd and len(hd) == 0
+    assert hd.size == hd._size == 0
+    assert len(hd) == 0
+    assert not hd
+
+
+@given(alphabet_strategy)
+def test_alphabet(alphabet):
+    hd = holodeque(alphabet)
+    assert hd.shape == hd._shape == len(alphabet)
+    assert hd.alphabet is not alphabet
+    assert hd.alphabet == alphabet
+
+
+@given(alphabet_strategy)
+def test_maxlen(alphabet):
+    hd = holodeque(alphabet)
+    assert hd.maxlen is None
 
 
 @given(alphabet_strategy)
@@ -760,6 +789,30 @@ def test_concatleft_requires_holodeque(pair):
         hd.concatleft(lst)
 
 
+@given(two_alphabets_two_lists())
+def test_concatright_requires_same_alphabet(quad):
+    alphabet1, alphabet2, lst1, lst2 = quad
+    hd1 = holodeque(alphabet1, lst1)
+    hd2 = holodeque(alphabet2, lst2)
+    if alphabet1 == alphabet2:
+        hd1.concatright(hd2)
+    else:
+        with pytest.raises(ValueError):
+            hd1.concatright(hd2)
+
+
+@given(two_alphabets_two_lists())
+def test_concatleft_requires_same_alphabet(quad):
+    alphabet1, alphabet2, lst1, lst2 = quad
+    hd1 = holodeque(alphabet1, lst1)
+    hd2 = holodeque(alphabet2, lst2)
+    if alphabet1 == alphabet2:
+        hd1.concatleft(hd2)
+    else:
+        with pytest.raises(ValueError):
+            hd1.concatleft(hd2)
+
+
 @given(two_lists())
 def test_extendright_with_another_holodeque_calls_concatright(trio):
     alphabet, lst1, lst2 = trio
@@ -777,13 +830,15 @@ def test_copy(pair):
     alphabet, lst = pair
     hd1 = holodeque(alphabet, lst)
     hd2 = hd1.copy()
-    assert hd1._alphabet == hd2._alphabet
+    assert hd1 is not hd2
+    assert hd1._alphabet == hd2._alphabet and hd1._alphabet is not hd2._alphabet
     def convert(x): return hd2._get_axis(hd1._get_element(x))
     for i in range(len(alphabet)):
         for j in range(len(alphabet)):
             hd1._matrix[i][j] == hd2._matrix[convert(i)][convert(j)]
+    assert hd1._matrix is not hd2._matrix
     assert hd1._maxlen == hd2._maxlen
-    assert hd1._kwargs == hd2._kwargs
+    assert hd1._kwargs == hd2._kwargs and hd1._kwargs is not hd2._kwargs
 
 
 @given(alphabet_and_initial_list_strategy())
@@ -798,6 +853,44 @@ def test_reversed(pair):
     alphabet, lst = pair
     hd = holodeque(alphabet, lst)
     assert list(reversed(hd)) == list(reversed(lst))
+
+
+@given(alphabet_and_initial_list_strategy())
+def test_equality(pair):
+    alphabet, lst = pair
+    hd1 = holodeque(alphabet, lst)
+    hd2 = holodeque(alphabet, lst)
+    assert hd1 == hd2
+    assert not (hd1 != hd2)
+
+
+@given(two_lists())
+def test_inequality(trio):
+    alphabet, lst1, lst2 = trio
+    hd1 = holodeque(alphabet, lst1)
+    hd2 = holodeque(alphabet, lst2)
+    assert (lst1 == lst2) == (hd1 == hd2)
+    assert (lst1 != lst2) == (hd1 != hd2)
+    assert (not (hd1 == hd2)) == (hd1 != hd2)
+
+
+@given(two_alphabets_two_lists())
+def test_equality_despite_different_alphabets(quad):
+    alphabet1, alphabet2, lst1, lst2 = quad
+    hd1 = holodeque(alphabet1, lst1)
+    hd2 = holodeque(alphabet2, lst2)
+    assert (lst1 == lst2) == (hd1 == hd2)
+    assert (lst1 != lst2) == (hd1 != hd2)
+    assert (not (hd1 == hd2)) == (hd1 != hd2)
+
+
+@given(alphabet_and_initial_list_strategy())
+def test_clear(pair):
+    alphabet, lst = pair
+    hd1 = holodeque(alphabet)
+    hd2 = holodeque(alphabet, lst)
+    hd2.clear()
+    assert hd1 == hd2
 
 
 @settings(max_examples=5_000, deadline=None)
