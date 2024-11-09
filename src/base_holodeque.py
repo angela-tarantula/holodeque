@@ -508,17 +508,17 @@ class BaseHolodeque[T: Hashable](ABC):
             for _ in range((self._size - 1) - index):
                 self.pushright(self.popleft())
 
-    def index(self, element: T, start: int = 0, stop: int = -1) -> int:
+    def index(self, target: T, start: int = 0, stop: int = None) -> int:  # type: ignore
         if start < 0:
             start += self._size
+        if stop is None:
+            stop = self._size
         if stop < 0:
             stop += self._size
-        if start < 0 or start >= self._size or stop < 0 or stop >= self._size:
-            raise IndexError("holodeque index out of range")
         for i, element in enumerate(self):
-            if i >= start and i < stop and element == element:
+            if i >= start and i < stop and element == target:
                 return i
-        raise ValueError(f"'{element}' not in holodeque")
+        raise ValueError(f"'{target}' not in holodeque")
 
     def copy(self: Self) -> Self:
         """Create and return a new holodeque with identical contents."""
@@ -605,9 +605,6 @@ class BaseHolodeque[T: Hashable](ABC):
             result.append(f", {key}={value}")
         result.append(")")
         return "".join(result)
-
-    def __hash__(self):
-        raise TypeError("holodeque is unhashable")
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, type(self)) and list(self) == list(other)

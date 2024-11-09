@@ -92,10 +92,41 @@ def alphabet_list_index_in_range_and_element_strategy(draw):
 def alphabet_list_index_out_of_range_and_element_strategy(draw):
     alphabet = draw(alphabet_strategy)
     lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
-    index = draw(st.sampled_from([draw(st.integers(
-        min_value=MIN, max_value=-len(lst)-1)), draw(st.integers(min_value=len(lst)+1, max_value=MAX))]))
+    index = draw(st.sampled_from(
+        [
+            draw(st.integers(min_value=MIN, max_value=-len(lst)-1)),
+            draw(st.integers(min_value=len(lst)+1, max_value=MAX))
+        ]
+    ))
     element = draw(st.sampled_from(list(alphabet)))
     return alphabet, lst, index, element
+
+
+@st.composite
+def alphabet_list_element_and_slice_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
+    element = draw(st.sampled_from(lst))
+    start = draw(st.integers(min_value=MIN, max_value=MAX))
+    stop = draw(st.integers(min_value=MIN, max_value=MAX))
+    return alphabet, lst, element, start, stop
+
+
+@st.composite
+def alphabet_list_nonelement_and_slice_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
+    element = draw(
+        st.one_of(
+            st.integers(),
+            st.floats(allow_infinity=False, allow_nan=False),
+            st.booleans(),
+            st.text()
+        ).filter(lambda x: x not in lst)
+    )
+    start = draw(st.integers(min_value=MIN, max_value=MAX))
+    stop = draw(st.integers(min_value=MIN, max_value=MAX))
+    return alphabet, lst, element, start, stop
 
 
 @st.composite
@@ -174,6 +205,7 @@ def test_count_when_present(trio):
     hd = holodeque(alphabet, lst)
     d = deque(lst)
     assert hd.count(element) == d.count(element)
+    assert list(hd) == list(d)
 
 
 @given(alphabet_list_and_nonelement_strategy())
@@ -182,6 +214,7 @@ def test_count_when_not_present(trio):
     hd = holodeque(alphabet, lst)
     d = deque(lst)
     assert hd.count(element) == d.count(element)
+    assert list(hd) == list(d)
 
 
 @given(alphabet_list_and_element_strategy())
@@ -212,6 +245,7 @@ def test_contain_when_present(trio):
     hd = holodeque(alphabet, lst)
     d = deque(lst)
     assert element in hd and element in d
+    assert list(hd) == list(d)
 
 
 @given(alphabet_list_and_nonelement_strategy())
@@ -220,6 +254,7 @@ def test_contain_when_not_present(trio):
     hd = holodeque(alphabet, lst)
     d = deque(lst)
     assert element not in hd and element not in d
+    assert list(hd) == list(d)
 
 
 @given(alphabet_list_index_in_range_and_element_strategy())
@@ -250,6 +285,7 @@ def test_getitem_in_range_against_deque(quartet):
     hd = holodeque(alphabet, lst)
     d = deque(lst)
     assert hd[index] == d[index]
+    assert list(hd) == list(d)
 
 
 @given(alphabet_list_index_out_of_range_and_element_strategy())
@@ -318,6 +354,42 @@ def test_delitem_out_of_range_against_deque(quartet):
     assert list(hd) == list(d)
 
 
-# index, repr, hash, < etc,
+@given(alphabet_list_and_element_strategy())
+def test_index_when_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert hd.index(element) == d.index(element)
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_and_nonelement_strategy())
+def test_index_when_not_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    with pytest.raises(ValueError):
+        hd.index(element)
+    with pytest.raises(ValueError):
+        d.index(element)
+    assert list(hd) == list(d)
+
+@settings(max_examples=5_000, deadline=None)
+@given(alphabet_list_element_and_slice_strategy())
+def test_index_slize_when_present(quintet):
+    alphabet, lst, element, start, stop = quintet
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    if element in lst[start:stop]:
+        assert hd.index(element, start, stop) == d.index(element, start, stop)
+    else:
+        with pytest.raises(ValueError):
+            hd.index(element, start, stop)
+        with pytest.raises(ValueError):
+            d.index(element, start, stop)
+    assert list(hd) == list(d)
+       
+
+# repr, hash, < etc,
 # compatible add radd & iadd, no sub or div, mult rmult & imult
 # maxlen and its effects
