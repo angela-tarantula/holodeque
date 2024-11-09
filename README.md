@@ -2,7 +2,7 @@
 
 ### Introduction
 
-The double-ended queue, or **deque**, is a crucial data structure that supports adding (**pushing**) and removing (**popping**) elements from either the front or back in $O(1)$ time. In its textbook implementation, a deque is a doubly-linked list where each node stores one datum and memory is managed dynamically. However, this design incurs a 200% memory overhead (two pointers for each node) and can be slow because each operation requires calling malloc() or free() for memory management.  Modern performant implementations improve upon this by using fixed-length blocks between links. This approach reduces the overhead ratio by packing more data between links, decreasing the frequency of malloc() and free() calls per operation, and taking advantage of data locality within blocks. While this optimization is highly efficient, I've conceived of a new approach rooted in linear algebra that leverages matrix multiplication as a core operation, aiming to rival or even outperform traditional deque implementations.
+The double-ended queue, or **deque**, is a crucial data structure that supports adding (**pushing**), removing (**popping**), and **concatenating** elements from either the front or back in $O(1)$ time. In its textbook implementation, a deque is a doubly-linked list where each node stores one datum and memory is managed dynamically. However, this design incurs a 200% memory overhead (two pointers for each node) and can be slow because each operation requires calling malloc() or free() for memory management.  Modern performant implementations improve upon this by using fixed-length blocks between links. This approach reduces the overhead ratio by packing more data between links, decreasing the frequency of malloc() and free() calls per operation, and taking advantage of data locality within blocks. While this optimization is highly efficient, I've conceived of a new approach rooted in linear algebra that leverages matrix multiplication as a core operation, aiming to rival or even outperform traditional deque implementations.
 
 ### Matrix-Multiplication-Based Deque
 
@@ -12,11 +12,11 @@ For example, a deque containing elements [𝑎, 𝑏, 𝑐, 𝑏, 𝑎, 𝑏] co
 
 ### Operations
 
-In my model, deque operations like push, pop, and **concatenate** are represented as matrix multiplications, effectively shifting memory management responsibilities from malloc() and free() calls to efficient BLAS routines. Adding an element to the right side is right-sided multiplication, $M'=M\times C$, and adding an element to the left is left-side multiplication, $M'=C\times M$. Removing elements corresponds to multiplying by the inverse matrix at the respective side, such as $M' = M \times B^{-1}$ to remove 𝑏 from the right side, or $M' = A^{-1} \times M$ to remove 𝑎 from the left side. Concatenation of two deques is a multiplication of their matrices, $M’ = J \times K$, where the multiplication order corresponds to the concatenation order.
+In my model, deque operations like push, pop, and concatenate are represented as matrix multiplications, effectively shifting memory management responsibilities from malloc() and free() calls to efficient BLAS routines. Adding an element to the right side is right-sided multiplication, $M'=M\times C$, and adding an element to the left is left-side multiplication, $M'=C\times M$. Removing elements corresponds to multiplying by the inverse matrix at the respective side, such as $M' = M \times B^{-1}$ to remove 𝑏 from the right side, or $M' = A^{-1} \times M$ to remove 𝑎 from the left side. Concatenation of two deques is a multiplication of their matrices, $M’ = J \times K$, where the multiplication order corresponds to the concatenation order.
 
-There is one more central operation of a deque, called **peek**, which returns the element at either specified end of the deque without removing it. In my model, peek is not a matrix multiplication, but rather a matrix decomposition (discussion *here* TODO).
+There is one more central operation of a deque, called **peek**, which returns the element at either specified end of the deque without removing it. In my model, peek is not a matrix multiplication, but rather a matrix decomposition that depends on how $A$, $B$, $C$, etc. are chosen (discussion *here* TODO).
 
-### Time + Space Complexity
+### Time Complexity
 
 I found a way to construct matrices such that a deque of size $N$ with $m$ elements has the following operation time complexities:
 
@@ -26,8 +26,6 @@ I found a way to construct matrices such that a deque of size $N$ with $m$ eleme
 4. Peek: $O(m)$
 
 This means when m << $N$, Each of these operations are $O(1)$ relative to the size of the deque.
-
-The space complexity of my model is $O(m^2)$.
 
 ### Limitations
 
@@ -40,12 +38,12 @@ The space complexity of my model is $O(m^2)$.
 
 I chose an object-oriented design where BaseHolodeque is an abstract base class that is subclassed by holodeque, binarydeque, numpydeque, holodeque64, quickdeque, and polydeque.
 
-holodeque - The main implementation of the holodeque. It uses Python's built-in list data structure to store the matrices.
-binarydeque - A lightweight holodeque that stores only two different objects but is faster.
-numpydeque - A holodeque that uses numpy arrays instead of Python lists to store the matrices. It utilizes BLAS routines for matrix multiplication, so in theory it's faster, but in practice the matrices are small enough that the overhead of numpy objects is not worth it.
-holodeque64 - A holodeque that uses 64-bit integers instead of Python's arbitrary-precision integers. This is faster, but it limits the deque size.
-quickdeque - A holodeque that manually implements explicit SIMD instructions. It also experiments with a few shortcuts to speed up matrix multiplication.
-polydeque - Instead of a holodeque of size $m\times m$, it uses $m$ binarydeques. 
+ - holodeque - The main implementation of the holodeque. It uses Python's built-in list data structure to store the matrices.
+ - binarydeque - A lightweight holodeque that stores only two different objects but is faster.
+ - numpydeque - A holodeque that uses numpy arrays instead of Python lists to store the matrices. It utilizes BLAS routines for matrix multiplication, so in theory it's faster, but in practice the matrices are small enough that the overhead of numpy objects is not worth it.
+ - holodeque64 - A holodeque that uses 64-bit integers instead of Python's arbitrary-precision integers. This is faster, but it limits the deque size.
+ - quickdeque - A holodeque that manually implements explicit SIMD instructions. It also experiments with a few shortcuts to speed up matrix multiplication.
+ - polydeque - Instead of a holodeque of size $m\times m$, it uses $m$ binarydeques. 
 
 I type hint all my code and use mypy to check it. I also use unittest, pytest, and Hypothesis to test it.
 
