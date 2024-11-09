@@ -147,10 +147,11 @@ class BaseHolodeque[T: Hashable](ABC):
         Args:
             from_left: A bool indicating the origin of the push.
         """
-        if from_left:
-            self.popright()
-        else:
-            self.popleft()
+        if self._size:
+            if from_left:
+                self.popright()
+            else:
+                self.popleft()
 
     def _transform(self, axis: int, left: bool = True, reverse: bool = False) -> None:
         """Applies the specified transformation to the base matrix.
@@ -524,7 +525,8 @@ class BaseHolodeque[T: Hashable](ABC):
         """Create and return a new holodeque with identical contents."""
         new_holodeque: Self = self.__class__(
             maxlen=self._maxlen, **self._kwargs)
-        new_holodeque.concatright(self)
+        if self._maxlen != 0:
+            new_holodeque.concatright(self)
         return new_holodeque
 
     def __len__(self) -> int:

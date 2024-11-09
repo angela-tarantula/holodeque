@@ -1,7 +1,4 @@
-from collections import Counter, deque
-from functools import reduce
-from itertools import permutations
-from math import factorial
+from collections import deque
 
 import pytest
 from hypothesis import assume, given, settings
@@ -9,6 +6,7 @@ from hypothesis import strategies as st
 
 from src.holodeque import holodeque
 
+# integer size limits in C, relevant because deque is written in C
 MIN = -(2**63)
 MAX = (2**63) - 1
 
@@ -396,7 +394,7 @@ def test_index_when_not_present(trio):
     assert list(hd) == list(d)
 
 
-# @settings(max_examples=5_000, deadline=None)
+@settings(max_examples=5_000, deadline=None)
 @given(alphabet_list_element_and_slice_strategy())
 def test_index_slize_when_present(quintet):
     alphabet, lst, element, start, stop = quintet
@@ -479,4 +477,25 @@ def test_multiplication_against_deque(pair, n):
     hd *= n
     assert list(hd) == list(d) == temp
 
-# maxlen and its effects
+@given(alphabet_list_and_element_strategy())
+def test_maxlen_against_deque(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst, maxlen=len(lst))
+    d = deque(lst, maxlen=len(lst))
+    assert list(hd) == list(d) == lst
+    d.append(element)
+    hd.pushright(element)
+    assert list(hd) == list(d)
+    d.appendleft(element)
+    hd.pushleft(element)
+    assert list(hd) == list(d)
+    d.extend(lst)
+    hd.extendright(lst)
+    assert list(hd) == list(d) == lst
+    d.extendleft(lst)
+    hd.extendleft(lst)
+    assert list(hd) == list(d) == list(reversed(lst))
+    assume(lst)
+    d2 = deque(lst, maxlen=len(lst) // 2)
+    hd2 = holodeque(alphabet, lst, maxlen=len(lst) // 2)
+    assert list(hd2) == list(d2)
