@@ -204,13 +204,15 @@ def test_remove_when_not_present(trio):
     with pytest.raises(ValueError):
         d.remove(element)
     assert list(hd) == list(d)
-    
+
+
 @given(alphabet_list_and_element_strategy())
 def test_contain_when_present(trio):
     alphabet, lst, element = trio
     hd = holodeque(alphabet, lst)
     d = deque(lst)
     assert element in hd and element in d
+
 
 @given(alphabet_list_and_nonelement_strategy())
 def test_contain_when_not_present(trio):
@@ -240,6 +242,82 @@ def test_insert_out_of_range_against_deque(quartet):
     assert list(hd) == list(d)
 
 
-# index, get/set/del item, repr, hash, < etc,
+@given(alphabet_list_index_in_range_and_element_strategy())
+def test_getitem_in_range_against_deque(quartet):
+    alphabet, lst, index, _ = quartet
+    if index == len(lst):
+        index -= 1
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert hd[index] == d[index]
+
+
+@given(alphabet_list_index_out_of_range_and_element_strategy())
+def test_getitem_out_of_range_against_deque(quartet):
+    alphabet, lst, index, _ = quartet
+    if index > len(lst):
+        index -= 1
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    with pytest.raises(IndexError):
+        hd[index]
+    with pytest.raises(IndexError):
+        d[index]
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_index_in_range_and_element_strategy())
+def test_setitem_in_range_against_deque(quartet):
+    alphabet, lst, index, element = quartet
+    if index == len(lst):
+        index -= 1
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    hd[index] = element
+    d[index] = element
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_index_out_of_range_and_element_strategy())
+def test_setitem_out_of_range_against_deque(quartet):
+    alphabet, lst, index, element = quartet
+    if index > len(lst):
+        index -= 1
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    with pytest.raises(IndexError):
+        hd[index] = element
+    with pytest.raises(IndexError):
+        d[index] = element
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_index_in_range_and_element_strategy())
+def test_delitem_in_range_against_deque(quartet):
+    alphabet, lst, index, _ = quartet
+    if index == len(lst):
+        index -= 1
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    del hd[index]
+    del d[index]
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_index_out_of_range_and_element_strategy())
+def test_delitem_out_of_range_against_deque(quartet):
+    alphabet, lst, index, _ = quartet
+    if index > len(lst):
+        index -= 1
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    with pytest.raises(IndexError):
+        del hd[index]
+    with pytest.raises(IndexError):
+        del d[index]
+    assert list(hd) == list(d)
+
+
+# index, repr, hash, < etc,
 # compatible add radd & iadd, no sub or div, mult rmult & imult
 # maxlen and its effects
