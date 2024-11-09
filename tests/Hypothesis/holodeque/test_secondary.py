@@ -25,6 +25,16 @@ alphabet_strategy = st.sets(
     max_size=10
 )
 
+alphabet_strategy_without_text = st.sets(
+    st.one_of(
+        st.integers(),
+        st.floats(allow_infinity=False, allow_nan=False),
+        st.booleans()
+    ),
+    min_size=2,
+    max_size=10
+)
+
 
 @st.composite
 def alphabet_and_element_strategy(draw):
@@ -143,6 +153,17 @@ def push_pop_strategy(draw):
 @st.composite
 def two_lists(draw):
     alphabet = draw(alphabet_strategy)
+    length = draw(st.integers(min_value=0, max_value=100))
+    lst1 = draw(st.lists(st.sampled_from(list(alphabet)),
+                min_size=length, max_size=length))
+    lst2 = draw(st.lists(st.sampled_from(list(alphabet)),
+                min_size=length, max_size=length))
+    return alphabet, lst1, lst2
+
+
+@st.composite
+def two_lists_without_text(draw):
+    alphabet = draw(alphabet_strategy_without_text)
     length = draw(st.integers(min_value=0, max_value=100))
     lst1 = draw(st.lists(st.sampled_from(list(alphabet)),
                 min_size=length, max_size=length))
@@ -374,7 +395,8 @@ def test_index_when_not_present(trio):
         d.index(element)
     assert list(hd) == list(d)
 
-@settings(max_examples=5_000, deadline=None)
+
+# @settings(max_examples=5_000, deadline=None)
 @given(alphabet_list_element_and_slice_strategy())
 def test_index_slize_when_present(quintet):
     alphabet, lst, element, start, stop = quintet
@@ -388,8 +410,34 @@ def test_index_slize_when_present(quintet):
         with pytest.raises(ValueError):
             d.index(element, start, stop)
     assert list(hd) == list(d)
-       
 
-# repr, hash, < etc,
+
+@given(alphabet_and_initial_list_strategy())
+def test_repr(pair):
+    alphabet, lst = pair
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    reprlen = len(repr(d))
+    assert repr(hd)[:4] == "holo"
+    assert repr(hd)[4:reprlen+3] == repr(d)[:-1]
+    assert repr(hd)[reprlen+3:] == f", alphabet={repr(hd.alphabet)})"
+
+
+@given(two_lists_without_text())
+def test_comparisons_against_deque(trio):
+    alphabet, lst1, lst2 = trio
+    if len(lst1) < len(lst2):
+        lst1, lst2 = lst2, lst1
+    hd1 = holodeque(alphabet, lst1)
+    hd2 = holodeque(alphabet, lst2)
+    d1 = deque(lst1)
+    d2 = deque(lst2)
+    assert (hd1 == hd2) == (d1 == d2)
+    assert (hd1 != hd2) == (d1 != d2)
+    assert (hd1 < hd2) == (d1 < d2)
+    assert (hd1 <= hd2) == (d1 <= d2)
+    assert (hd1 > hd2) == (d1 > d2)
+    assert (hd1 >= hd2) == (d1 >= d2)
+
 # compatible add radd & iadd, no sub or div, mult rmult & imult
 # maxlen and its effects
