@@ -63,6 +63,22 @@ def alphabet_list_and_element_strategy(draw):
     element = draw(st.sampled_from(lst))
     return alphabet, lst, element
 
+
+@st.composite
+def alphabet_list_and_nonelement_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
+    element = draw(
+        st.one_of(
+            st.integers(),
+            st.floats(allow_infinity=False, allow_nan=False),
+            st.booleans(),
+            st.text()
+        ).filter(lambda x: x not in lst)
+    )
+    return alphabet, lst, element
+
+
 @st.composite
 def alphabet_list_index_in_range_and_element_strategy(draw):
     alphabet = draw(alphabet_strategy)
@@ -71,11 +87,13 @@ def alphabet_list_index_in_range_and_element_strategy(draw):
     element = draw(st.sampled_from(list(alphabet)))
     return alphabet, lst, index, element
 
+
 @st.composite
 def alphabet_list_index_out_of_range_and_element_strategy(draw):
     alphabet = draw(alphabet_strategy)
     lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
-    index = draw(st.sampled_from([draw(st.integers(min_value=MIN, max_value=-len(lst)-1)), draw(st.integers(min_value=len(lst)+1, max_value=MAX))]))
+    index = draw(st.sampled_from([draw(st.integers(
+        min_value=MIN, max_value=-len(lst)-1)), draw(st.integers(min_value=len(lst)+1, max_value=MAX))]))
     element = draw(st.sampled_from(list(alphabet)))
     return alphabet, lst, index, element
 
@@ -150,21 +168,57 @@ def test_rotate_against_deque(trio):
     assert list(hd) == list(d)
 
 
-@given(alphabet_list_and_index_strategy())
-def test_count_not_necessarily_present(pair):
-    alphabet, lst, index = pair
-    hd = holodeque(alphabet, lst)
-    d = deque(lst)
-    assert hd.count(index) == d.count(index)
-
-
 @given(alphabet_list_and_element_strategy())
-def test_count_when_always_present(trio):
+def test_count_when_present(trio):
     alphabet, lst, element = trio
     hd = holodeque(alphabet, lst)
     d = deque(lst)
     assert hd.count(element) == d.count(element)
+
+
+@given(alphabet_list_and_nonelement_strategy())
+def test_count_when_not_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert hd.count(element) == d.count(element)
+
+
+@given(alphabet_list_and_element_strategy())
+def test_remove_when_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    hd.remove(element)
+    d.remove(element)
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_and_nonelement_strategy())
+def test_remove_when_not_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    with pytest.raises(ValueError):
+        hd.remove(element)
+    with pytest.raises(ValueError):
+        d.remove(element)
+    assert list(hd) == list(d)
     
+@given(alphabet_list_and_element_strategy())
+def test_contain_when_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert element in hd and element in d
+
+@given(alphabet_list_and_nonelement_strategy())
+def test_contain_when_not_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert element not in hd and element not in d
+
 
 @given(alphabet_list_index_in_range_and_element_strategy())
 def test_insert_in_range_against_deque(quartet):
@@ -185,6 +239,7 @@ def test_insert_out_of_range_against_deque(quartet):
     d.insert(index, element)
     assert list(hd) == list(d)
 
-# contain, remove, insert, index, get/set/del item, repr, hash, < etc,
+
+# index, get/set/del item, repr, hash, < etc,
 # compatible add radd & iadd, no sub or div, mult rmult & imult
 # maxlen and its effects

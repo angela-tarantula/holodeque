@@ -135,6 +135,7 @@ def test_empty_popright_raises_index_error(alphabet):
     hd = holodeque(alphabet)
     with pytest.raises(IndexError):
         hd.popright()
+    assert not hd
 
 
 @given(alphabet_strategy)
@@ -142,6 +143,7 @@ def test_empty_popleft_raises_index_error(alphabet):
     hd = holodeque(alphabet)
     with pytest.raises(IndexError):
         hd.popleft()
+    assert not hd
 
 
 @given(alphabet_strategy)
@@ -149,6 +151,7 @@ def test_empty_peekright_raises_index_error(alphabet):
     hd = holodeque(alphabet)
     with pytest.raises(IndexError):
         hd.peekright()
+    assert not hd
 
 
 @given(alphabet_strategy)
@@ -156,6 +159,7 @@ def test_empty_peekleft_raises_index_error(alphabet):
     hd = holodeque(alphabet)
     with pytest.raises(IndexError):
         hd.peekleft()
+    assert not hd
 
 
 @given(alphabet_and_element_strategy())
@@ -779,6 +783,7 @@ def test_concatright_requires_holodeque(pair):
     hd = holodeque(alphabet)
     with pytest.raises(TypeError):
         hd.concatright(lst)
+    assert not hd
 
 
 @given(alphabet_and_initial_list_strategy())
@@ -787,6 +792,7 @@ def test_concatleft_requires_holodeque(pair):
     hd = holodeque(alphabet)
     with pytest.raises(TypeError):
         hd.concatleft(lst)
+    assert not hd
 
 
 @given(two_alphabets_two_lists())
@@ -796,9 +802,11 @@ def test_concatright_requires_same_alphabet(quad):
     hd2 = holodeque(alphabet2, lst2)
     if alphabet1 == alphabet2:
         hd1.concatright(hd2)
+        assert list(hd1) == lst1 + lst2
     else:
         with pytest.raises(ValueError):
             hd1.concatright(hd2)
+        assert list(hd1) == lst1
 
 
 @given(two_alphabets_two_lists())
@@ -808,9 +816,11 @@ def test_concatleft_requires_same_alphabet(quad):
     hd2 = holodeque(alphabet2, lst2)
     if alphabet1 == alphabet2:
         hd1.concatleft(hd2)
+        assert list(hd1) == lst2 + lst1
     else:
         with pytest.raises(ValueError):
             hd1.concatleft(hd2)
+        assert list(hd1) == lst1
 
 
 @given(two_lists())

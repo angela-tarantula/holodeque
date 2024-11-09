@@ -433,8 +433,11 @@ class BaseHolodeque[T: Hashable](ABC):
             self.pushright(element)
 
     def __contains__(self, element: T) -> bool:
-        index: int = self._get_axis(element)
-        return any(self._matrix[index][i] != int(index == i) for i in range(self._shape))
+        try:
+            index: int = self._get_axis(element)
+            return any(self._matrix[index][i] != int(index == i) for i in range(self._shape))
+        except ValueError:
+            return False
 
     def count(self, element: T) -> int:
         """Counts the occurrences of an element in the holodeque."""
@@ -476,16 +479,14 @@ class BaseHolodeque[T: Hashable](ABC):
             ValueError: If the element is not present in the holodeque.
         """
         index: int = 0
-        try:
-            while index < self._size:
-                if self.peekleft() == element:
-                    self.popleft()
-                    return
-                self.pushright(self.popleft())
-                index += 1
-            raise ValueError(f"'{element}' not in holodeque")
-        finally:
-            self.rotate(index)
+        while index < self._size:
+            if self.peekleft() == element:
+                self.popleft()
+                self.rotate(index)
+                return
+            self.pushright(self.popleft())
+            index += 1
+        raise ValueError(f"'{element}' not in holodeque")
 
     def insert(self, index: int, element: T) -> None:
         if index < 0:
