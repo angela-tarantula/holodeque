@@ -433,11 +433,50 @@ def test_comparisons_against_deque(trio):
     d1 = deque(lst1)
     d2 = deque(lst2)
     assert (hd1 == hd2) == (d1 == d2)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
     assert (hd1 != hd2) == (d1 != d2)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
     assert (hd1 < hd2) == (d1 < d2)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
     assert (hd1 <= hd2) == (d1 <= d2)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
     assert (hd1 > hd2) == (d1 > d2)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
     assert (hd1 >= hd2) == (d1 >= d2)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
 
-# compatible add radd & iadd, no sub or div, mult rmult & imult
+
+@given(two_lists())
+def test_addition_against_deque(trio):
+    alphabet, lst1, lst2 = trio
+    if len(lst1) < len(lst2):
+        lst1, lst2 = lst2, lst1
+    hd1 = holodeque(alphabet, lst1)
+    hd2 = holodeque(alphabet, lst2)
+    d1 = deque(lst1)
+    d2 = deque(lst2)
+    assert list(d1 + d2) == list(hd1 + hd2)
+    temp = list(d1 + d2)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
+    assert list(d2 + d1) == list(hd2 + hd1)
+    assert list(hd1) == list(d1) and list(hd2) == list(d2)
+    d1 += d2
+    hd1 += hd2
+    assert list(hd1) == list(d1) == temp and list(hd2) == list(d2)
+
+
+@given(pair=alphabet_and_initial_list_strategy(), n=st.integers(min_value=1, max_value=10))
+def test_multiplication_against_deque(pair, n):
+    alphabet, lst = pair
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert list(d * n) == list(hd * n)
+    assert list(hd) == list(d)
+    temp = list(d * n)
+    assert list(n * d) == list(n * hd)
+    assert list(hd) == list(d)
+    d *= n
+    hd *= n
+    assert list(hd) == list(d) == temp
+
 # maxlen and its effects
