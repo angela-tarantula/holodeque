@@ -490,22 +490,21 @@ class BaseHolodeque[T: Hashable](ABC):
     def insert(self, index: int, element: T) -> None:
         if index < 0:
             index += self._size
-        if index < 0 or index >= self._size:
-            raise IndexError("holodeque index out of range")
-        if index > self._size // 2:
-            index -= self._size
-        if index >= 0:
+        if index < 0:
+            index = 0
+        elif index > self._size:
+            index = self._size
+        if index < (self._size + 1) // 2:
             for _ in range(index):
                 self.pushright(self.popleft())
             self.pushleft(element)
             for _ in range(index):
                 self.pushleft(self.popright())
         else:
-            index = -index
-            for _ in range(index):
+            for _ in range(self._size - index):
                 self.pushleft(self.popright())
             self.pushright(element)
-            for _ in range(index):
+            for _ in range((self._size - 1) - index):
                 self.pushright(self.popleft())
 
     def index(self, element: T, start: int = 0, stop: int = -1) -> int:

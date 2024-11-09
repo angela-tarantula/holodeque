@@ -9,6 +9,9 @@ from hypothesis import strategies as st
 
 from src.holodeque import holodeque
 
+MIN = -(2**63)
+MAX = (2**63) - 1
+
 """Draw strategies"""
 
 alphabet_strategy = st.sets(
@@ -43,6 +46,38 @@ def alphabet_and_initial_list_strategy_small_version(draw):
     lst = draw(st.lists(st.sampled_from(
         list(alphabet)), min_size=2, max_size=10))
     return alphabet, lst
+
+
+@st.composite
+def alphabet_list_and_index_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst = draw(st.lists(st.sampled_from(list(alphabet))))
+    index = draw(st.integers(min_value=MIN, max_value=MAX))
+    return alphabet, lst, index
+
+
+@st.composite
+def alphabet_list_and_element_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
+    element = draw(st.sampled_from(lst))
+    return alphabet, lst, element
+
+@st.composite
+def alphabet_list_index_in_range_and_element_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
+    index = draw(st.integers(min_value=-len(lst), max_value=len(lst)))
+    element = draw(st.sampled_from(list(alphabet)))
+    return alphabet, lst, index, element
+
+@st.composite
+def alphabet_list_index_out_of_range_and_element_strategy(draw):
+    alphabet = draw(alphabet_strategy)
+    lst = draw(st.lists(st.sampled_from(list(alphabet)), min_size=1))
+    index = draw(st.sampled_from([draw(st.integers(min_value=MIN, max_value=-len(lst)-1)), draw(st.integers(min_value=len(lst)+1, max_value=MAX))]))
+    element = draw(st.sampled_from(list(alphabet)))
+    return alphabet, lst, index, element
 
 
 @st.composite
@@ -95,6 +130,61 @@ def deque_simulation_strategy(draw):
 
 """Tests"""
 
-# count, contain, rotate, remove, insert, index, get/set/del item, repr, hash, < etc,
+
+@given(alphabet_list_and_index_strategy())
+def test_rotate_can_be_undone(trio):
+    alphabet, lst, index = trio
+    hd = holodeque(alphabet, lst)
+    hd.rotate(index)
+    hd.rotate(-index)
+    assert lst == list(hd)
+
+
+@given(alphabet_list_and_index_strategy())
+def test_rotate_against_deque(trio):
+    alphabet, lst, index = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    hd.rotate(index)
+    d.rotate(index)
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_and_index_strategy())
+def test_count_not_necessarily_present(pair):
+    alphabet, lst, index = pair
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert hd.count(index) == d.count(index)
+
+
+@given(alphabet_list_and_element_strategy())
+def test_count_when_always_present(trio):
+    alphabet, lst, element = trio
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    assert hd.count(element) == d.count(element)
+    
+
+@given(alphabet_list_index_in_range_and_element_strategy())
+def test_insert_in_range_against_deque(quartet):
+    alphabet, lst, index, element = quartet
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    hd.insert(index, element)
+    d.insert(index, element)
+    assert list(hd) == list(d)
+
+
+@given(alphabet_list_index_out_of_range_and_element_strategy())
+def test_insert_out_of_range_against_deque(quartet):
+    alphabet, lst, index, element = quartet
+    hd = holodeque(alphabet, lst)
+    d = deque(lst)
+    hd.insert(index, element)
+    d.insert(index, element)
+    assert list(hd) == list(d)
+
+# contain, remove, insert, index, get/set/del item, repr, hash, < etc,
 # compatible add radd & iadd, no sub or div, mult rmult & imult
 # maxlen and its effects
