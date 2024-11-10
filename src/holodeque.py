@@ -6,7 +6,7 @@ from typing import Iterable, Optional, Self, override
 from src.base_holodeque import BaseHolodeque, Matrix
 
 
-class holodeque[T: Hashable](BaseHolodeque[T]):
+class holodeque[T: Hashable](BaseHolodeque[int, T]):
     """A holodeque with a predefined alphabet (acceptable input).   
 
     Attributes:

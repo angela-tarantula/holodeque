@@ -202,7 +202,7 @@ def deque_simulation_strategy(draw):
 @given(alphabet_list_and_index_strategy())
 def test_rotate_can_be_undone(trio):
     alphabet, lst, index = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     hd.rotate(index)
     hd.rotate(-index)
     assert lst == list(hd)
@@ -211,7 +211,7 @@ def test_rotate_can_be_undone(trio):
 @given(alphabet_list_and_index_strategy())
 def test_rotate_against_deque(trio):
     alphabet, lst, index = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     hd.rotate(index)
     d.rotate(index)
@@ -221,7 +221,7 @@ def test_rotate_against_deque(trio):
 @given(alphabet_list_and_element_strategy())
 def test_count_when_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     assert hd.count(element) == d.count(element)
     assert list(hd) == list(d)
@@ -230,7 +230,7 @@ def test_count_when_present(trio):
 @given(alphabet_list_and_nonelement_strategy())
 def test_count_when_not_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     assert hd.count(element) == d.count(element)
     assert list(hd) == list(d)
@@ -239,7 +239,7 @@ def test_count_when_not_present(trio):
 @given(alphabet_list_and_element_strategy())
 def test_remove_when_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     hd.remove(element)
     d.remove(element)
@@ -249,7 +249,7 @@ def test_remove_when_present(trio):
 @given(alphabet_list_and_nonelement_strategy())
 def test_remove_when_not_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     with pytest.raises(ValueError):
         hd.remove(element)
@@ -261,7 +261,7 @@ def test_remove_when_not_present(trio):
 @given(alphabet_list_and_element_strategy())
 def test_contain_when_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     assert element in hd and element in d
     assert list(hd) == list(d)
@@ -270,7 +270,7 @@ def test_contain_when_present(trio):
 @given(alphabet_list_and_nonelement_strategy())
 def test_contain_when_not_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     assert element not in hd and element not in d
     assert list(hd) == list(d)
@@ -279,7 +279,7 @@ def test_contain_when_not_present(trio):
 @given(alphabet_list_index_in_range_and_element_strategy())
 def test_insert_in_range_against_deque(quartet):
     alphabet, lst, index, element = quartet
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     hd.insert(index, element)
     d.insert(index, element)
@@ -289,7 +289,7 @@ def test_insert_in_range_against_deque(quartet):
 @given(alphabet_list_index_out_of_range_and_element_strategy())
 def test_insert_out_of_range_against_deque(quartet):
     alphabet, lst, index, element = quartet
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     hd.insert(index, element)
     d.insert(index, element)
@@ -301,7 +301,7 @@ def test_getitem_in_range_against_deque(quartet):
     alphabet, lst, index, _ = quartet
     if index == len(lst):
         index -= 1
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     assert hd[index] == d[index]
     assert list(hd) == list(d)
@@ -312,7 +312,7 @@ def test_getitem_out_of_range_against_deque(quartet):
     alphabet, lst, index, _ = quartet
     if index > len(lst):
         index -= 1
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     with pytest.raises(IndexError):
         hd[index]
@@ -326,7 +326,7 @@ def test_setitem_in_range_against_deque(quartet):
     alphabet, lst, index, element = quartet
     if index == len(lst):
         index -= 1
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     hd[index] = element
     d[index] = element
@@ -338,7 +338,7 @@ def test_setitem_out_of_range_against_deque(quartet):
     alphabet, lst, index, element = quartet
     if index > len(lst):
         index -= 1
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     with pytest.raises(IndexError):
         hd[index] = element
@@ -352,7 +352,7 @@ def test_delitem_in_range_against_deque(quartet):
     alphabet, lst, index, _ = quartet
     if index == len(lst):
         index -= 1
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     del hd[index]
     del d[index]
@@ -364,7 +364,7 @@ def test_delitem_out_of_range_against_deque(quartet):
     alphabet, lst, index, _ = quartet
     if index > len(lst):
         index -= 1
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     with pytest.raises(IndexError):
         del hd[index]
@@ -376,7 +376,7 @@ def test_delitem_out_of_range_against_deque(quartet):
 @given(alphabet_list_and_element_strategy())
 def test_index_when_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     assert hd.index(element) == d.index(element)
     assert list(hd) == list(d)
@@ -385,7 +385,7 @@ def test_index_when_present(trio):
 @given(alphabet_list_and_nonelement_strategy())
 def test_index_when_not_present(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     with pytest.raises(ValueError):
         hd.index(element)
@@ -398,7 +398,7 @@ def test_index_when_not_present(trio):
 @given(alphabet_list_element_and_slice_strategy())
 def test_index_slize_when_present(quintet):
     alphabet, lst, element, start, stop = quintet
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     if element in lst[start:stop]:
         assert hd.index(element, start, stop) == d.index(element, start, stop)
@@ -413,7 +413,7 @@ def test_index_slize_when_present(quintet):
 @given(alphabet_and_initial_list_strategy())
 def test_repr(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     reprlen = len(repr(d))
     assert repr(hd)[:4] == "holo"
@@ -426,8 +426,8 @@ def test_comparisons_against_deque(trio):
     alphabet, lst1, lst2 = trio
     if len(lst1) < len(lst2):
         lst1, lst2 = lst2, lst1
-    hd1 = holodeque(alphabet, lst1)
-    hd2 = holodeque(alphabet, lst2)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst2)
     d1 = deque(lst1)
     d2 = deque(lst2)
     assert (hd1 == hd2) == (d1 == d2)
@@ -449,8 +449,8 @@ def test_addition_against_deque(trio):
     alphabet, lst1, lst2 = trio
     if len(lst1) < len(lst2):
         lst1, lst2 = lst2, lst1
-    hd1 = holodeque(alphabet, lst1)
-    hd2 = holodeque(alphabet, lst2)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst2)
     d1 = deque(lst1)
     d2 = deque(lst2)
     assert list(d1 + d2) == list(hd1 + hd2)
@@ -466,7 +466,7 @@ def test_addition_against_deque(trio):
 @given(pair=alphabet_and_initial_list_strategy(), n=st.integers(min_value=1, max_value=10))
 def test_multiplication_against_deque(pair, n):
     alphabet, lst = pair
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     d = deque(lst)
     assert list(d * n) == list(hd * n)
     assert list(hd) == list(d)
@@ -480,7 +480,7 @@ def test_multiplication_against_deque(pair, n):
 @given(alphabet_list_and_element_strategy())
 def test_maxlen_against_deque(trio):
     alphabet, lst, element = trio
-    hd = holodeque(alphabet, lst, maxlen=len(lst))
+    hd = holodeque(alphabet=alphabet, iterable=lst, maxlen=len(lst))
     d = deque(lst, maxlen=len(lst))
     assert list(hd) == list(d) == lst
     d.append(element)
@@ -497,5 +497,5 @@ def test_maxlen_against_deque(trio):
     assert list(hd) == list(d) == list(reversed(lst))
     assume(lst)
     d2 = deque(lst, maxlen=len(lst) // 2)
-    hd2 = holodeque(alphabet, lst, maxlen=len(lst) // 2)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst, maxlen=len(lst) // 2)
     assert list(hd2) == list(d2)

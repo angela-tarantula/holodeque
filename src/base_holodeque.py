@@ -13,8 +13,21 @@ from functools import wraps
 from typing import (Any, Iterable, Iterator, Optional, Protocol, Self,
                     SupportsInt)
 
+
 # typing protocol
-class MatrixRow[R: SupportsInt](Protocol):
+class SupportsBasicArithmetic(Protocol):
+    def __add__(self, other: Self) -> Self:
+        ...
+
+    def __sub__(self, other: Self) -> Self:
+        ...
+
+    def __mul__(self, other: Self) -> Self:
+        ...
+
+
+# typing protocol
+class MatrixRow[R: SupportsBasicArithmetic](Protocol):
 
     def __getitem__(self, index: int) -> R:
         ...
@@ -30,7 +43,7 @@ class MatrixRow[R: SupportsInt](Protocol):
 
 
 # typing protocol
-class Matrix[S: SupportsInt](Protocol):
+class Matrix[S: SupportsBasicArithmetic](Protocol):
 
     def __getitem__(self, index: int) -> MatrixRow[S]:
         ...
@@ -42,7 +55,7 @@ class Matrix[S: SupportsInt](Protocol):
         ...
 
 
-class BaseHolodeque[T: Hashable](ABC):
+class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
     """Abstract base class for the holodeque data structure.
 
     Attributes:
@@ -419,11 +432,11 @@ class BaseHolodeque[T: Hashable](ABC):
 
     def __iter__(self) -> Iterator[T]:
         """Returns an iterator that can traverse a copy of the holodeque from left to right."""
-        return HolodequeIterator[T](self, reverse=False)
+        return HolodequeIterator[SBA, T](self, reverse=False)
 
     def __reversed__(self) -> Iterator[T]:
         """Returns an iterator that can traverse a copy of the holodeque from right to left."""
-        return HolodequeIterator[T](self, reverse=True)
+        return HolodequeIterator[SBA, T](self, reverse=True)
 
     def reverse(self) -> None:
         """Reverses the holodeque in-place."""
@@ -708,7 +721,7 @@ class BaseHolodeque[T: Hashable](ABC):
                 f"can't multiply sequence by non-int of type {type(multiple).__name__}")
 
 
-class HolodequeIterator[U: Hashable]:
+class HolodequeIterator[SBA2: SupportsBasicArithmetic, T2: Hashable]:
     """Iterator for traversing a holodeque.
 
     Yields each element from the holodeque by popping from a copy.
@@ -719,20 +732,20 @@ class HolodequeIterator[U: Hashable]:
            yields elements from left to right.
     """
 
-    def __init__(self, holodeq: BaseHolodeque[U], reverse: bool = False) -> None:
+    def __init__(self, holodeq: BaseHolodeque[SBA2, T2], reverse: bool = False) -> None:
         """Initializes the iterator for a holodeque.
 
         Args:
             holodeq: A holodeque to iterate over.
             reverse: A bool indicating the direction of iteration.
         """
-        self._holodeq: BaseHolodeque[U] = holodeq.copy()
+        self._holodeq: BaseHolodeque[SBA2, T2] = holodeq.copy()
         self._reverse: bool = reverse
 
-    def __iter__(self) -> Iterator[U]:
+    def __iter__(self) -> Iterator[T2]:
         return self
 
-    def __next__(self) -> U:
+    def __next__(self) -> T2:
         if not self._holodeq.size:
             raise StopIteration
         return self._holodeq.popright() if self._reverse else self._holodeq.popleft()

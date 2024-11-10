@@ -1,7 +1,7 @@
-"""A numpy holodeque implementation."""
+"""A numpy implementation of holodeque."""
 
 from collections.abc import Hashable
-from typing import Callable, Self, override
+from typing import Callable, Self, override, Protocol
 
 import numpy as np
 
@@ -10,7 +10,18 @@ from src.holodeque import holodeque
 
 
 class numpydeque[T: Hashable](holodeque[T]):
-    """A numpy holodeque implementation."""
+    """A holodeque with a predefined alphabet (acceptable input).   
+
+    Attributes:
+        _matrix: A square numpy matrix representing the state of the holodeque.
+        _shape: The dimension of the base matrix (its width and height).
+        _size: The current number of elements in the holodeque.
+        _maxlen: The maximum allowed size of the holodeque; None if unbounded.
+        _alphabet: The set of unique elements that the holodeque can contain.
+        _element_tuple: An tuple of acceptable input for the holodeque.
+        _element_map: A hashmap that maps each containable element to an index in _element_tuple.
+        _kwargs: A dictionary for additional optional parameters.
+    """
 
     @staticmethod
     def identity(n: int) -> Matrix[int]:
@@ -79,7 +90,7 @@ if __name__ == "__main__":
 
     # example usage
     q = numpydeque(alphabet={0, 1, 2, 3})
-    t = holodeque(alphabet={0, 1, 2, 3})
+    t = numpydeque(alphabet={0, 1, 2, 3})
     ext = [0, 1, 2, 2, 3, 0, 3, 2, 3, 2, 2, 1]
     q.extendright(ext)
     t.extendleft(ext)

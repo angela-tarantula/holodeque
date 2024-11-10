@@ -5,7 +5,7 @@ from typing import Iterable, Optional, override
 from src.base_holodeque import BaseHolodeque, Matrix
 
 
-class binarydeque(BaseHolodeque[int]):
+class binarydeque(BaseHolodeque[int, int]):
     """A holodeque that only accepts 0 and 1.
 
     Attributes:

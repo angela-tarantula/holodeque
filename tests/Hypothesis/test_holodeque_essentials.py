@@ -110,7 +110,7 @@ def deque_simulation_strategy(draw):
 
 @given(alphabet_strategy)
 def test_empty_contains_nothing(alphabet):
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     assert hd.size == hd._size == 0
     assert len(hd) == 0
     assert not hd
@@ -118,7 +118,7 @@ def test_empty_contains_nothing(alphabet):
 
 @given(alphabet_strategy)
 def test_alphabet(alphabet):
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     assert hd.shape == hd._shape == len(alphabet)
     assert hd.alphabet is not alphabet
     assert hd.alphabet == alphabet
@@ -126,13 +126,13 @@ def test_alphabet(alphabet):
 
 @given(alphabet_strategy)
 def test_maxlen(alphabet):
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     assert hd.maxlen is None
 
 
 @given(alphabet_strategy)
 def test_empty_popright_raises_index_error(alphabet):
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     with pytest.raises(IndexError):
         hd.popright()
     assert not hd
@@ -140,7 +140,7 @@ def test_empty_popright_raises_index_error(alphabet):
 
 @given(alphabet_strategy)
 def test_empty_popleft_raises_index_error(alphabet):
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     with pytest.raises(IndexError):
         hd.popleft()
     assert not hd
@@ -148,7 +148,7 @@ def test_empty_popleft_raises_index_error(alphabet):
 
 @given(alphabet_strategy)
 def test_empty_peekright_raises_index_error(alphabet):
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     with pytest.raises(IndexError):
         hd.peekright()
     assert not hd
@@ -156,7 +156,7 @@ def test_empty_peekright_raises_index_error(alphabet):
 
 @given(alphabet_strategy)
 def test_empty_peekleft_raises_index_error(alphabet):
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     with pytest.raises(IndexError):
         hd.peekleft()
     assert not hd
@@ -165,10 +165,10 @@ def test_empty_peekleft_raises_index_error(alphabet):
 @given(alphabet_and_element_strategy())
 def test_fist_push_makes_length_one(pair):
     alphabet, element = pair
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     hd1.pushright(element)
     assert hd1 and len(hd1) == 1
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     hd2.pushleft(element)
     assert hd2 and len(hd2) == 1
 
@@ -176,9 +176,9 @@ def test_fist_push_makes_length_one(pair):
 @given(alphabet_and_element_strategy())
 def test_first_pushes_are_equivalent(pair):
     alphabet, element = pair
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     hd1.pushright(element)
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     hd2.pushleft(element)
     assert hd1._matrix == hd2._matrix
 
@@ -186,16 +186,16 @@ def test_first_pushes_are_equivalent(pair):
 @given(alphabet_and_element_strategy())
 def test_first_pushes_change_matrix(pair):
     alphabet, element = pair
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     hd1.pushright(element)
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     assert hd1._matrix != hd2._matrix
 
 
 @given(alphabet_and_element_strategy())
 def test_first_peeks_dont_change_length(pair):
     alphabet, element = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     hd.pushright(element)
     hd.peekleft()
     assert len(hd) == 1
@@ -206,9 +206,9 @@ def test_first_peeks_dont_change_length(pair):
 @given(alphabet_and_element_strategy())
 def test_first_peeks_dont_change_matrix(pair):
     alphabet, element = pair
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     hd1.pushright(element)
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     hd2.pushright(element)
     hd1.peekleft()
     assert hd1._matrix == hd2._matrix
@@ -220,7 +220,7 @@ def test_first_peeks_dont_change_matrix(pair):
 @given(alphabet_and_element_strategy())
 def test_first_peeks_are_equivalent(pair):
     alphabet, element = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     hd.pushright(element)
     assert hd.peekleft() == hd.peekright() == element
 
@@ -228,13 +228,13 @@ def test_first_peeks_are_equivalent(pair):
 @given(alphabet_and_element_strategy())
 def test_pop_single_changes_matrix(pair):
     alphabet, element = pair
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     hd1.pushright(element)
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     hd2.pushright(element)
     hd2.popright()
     assert hd1._matrix != hd2._matrix
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     hd2.pushright(element)
     hd2.popleft()
     assert hd1._matrix != hd2._matrix
@@ -243,8 +243,8 @@ def test_pop_single_changes_matrix(pair):
 @given(alphabet_and_element_strategy())
 def test_pop_single_makes_matrix_identity(pair):
     alphabet, element = pair
-    empty_holodeque = holodeque(alphabet)
-    hd = holodeque(alphabet)
+    empty_holodeque = holodeque(alphabet=alphabet)
+    hd = holodeque(alphabet=alphabet)
     hd.pushright(element)
     hd.popright()
     assert hd._matrix == empty_holodeque._matrix
@@ -256,7 +256,7 @@ def test_pop_single_makes_matrix_identity(pair):
 @given(alphabet_and_element_strategy())
 def test_pop_single_makes_empty(pair):
     alphabet, element = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     hd.pushright(element)
     hd.popright()
     assert not hd and len(hd) == 0
@@ -268,7 +268,7 @@ def test_pop_single_makes_empty(pair):
 @given(alphabet_and_element_strategy())
 def test_pop_singles_are_equivalent(pair):
     alphabet, element = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     hd.pushright(element)
     assert element == hd.popright()
     hd.pushright(element)
@@ -278,7 +278,7 @@ def test_pop_singles_are_equivalent(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushright_increments_length(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     size = 0
     for i in lst:
         hd.pushright(i)
@@ -289,7 +289,7 @@ def test_pushright_increments_length(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushright_always_makes_new_matrix(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     matrices = set()
 
     def matrixtuple(matrix):
@@ -306,7 +306,7 @@ def test_pushright_always_makes_new_matrix(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushleft_increments_length(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     size = 0
     for i in lst:
         hd.pushleft(i)
@@ -317,7 +317,7 @@ def test_pushleft_increments_length(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushleft_always_makes_new_matrix(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     matrices = set()
 
     def matrixtuple(matrix):
@@ -334,7 +334,7 @@ def test_pushleft_always_makes_new_matrix(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushright_result_is_unique_to_parameter(pair):
     alphabet, lst = pair
-    holodeques = [holodeque(alphabet) for _ in alphabet]
+    holodeques = [holodeque(alphabet=alphabet) for _ in alphabet]
     for i in lst:
         for hd in holodeques:
             hd.pushright(i)
@@ -351,7 +351,7 @@ def test_pushright_result_is_unique_to_parameter(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushleft_result_is_unique_to_parameter(pair):
     alphabet, lst = pair
-    holodeques = [holodeque(alphabet) for _ in alphabet]
+    holodeques = [holodeque(alphabet=alphabet) for _ in alphabet]
     for i in lst:
         for hd in holodeques:
             hd.pushright(i)
@@ -368,8 +368,8 @@ def test_pushleft_result_is_unique_to_parameter(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushleft_is_associative_with_pushrights(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet)
-    hd2 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     stop = len(lst) // 2
     for i in lst[:stop]:
         hd1.pushright(i)
@@ -386,8 +386,8 @@ def test_pushleft_is_associative_with_pushrights(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_pushright_is_associative_with_pushlefts(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet)
-    hd2 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     stop = len(lst) // 2
     for i in lst[:stop]:
         hd1.pushleft(i)
@@ -404,13 +404,13 @@ def test_pushright_is_associative_with_pushlefts(pair):
 @given(push_pop_strategy())
 def test_pushes_are_always_associative_by_direction(trio):
     alphabet, lst, directions = trio
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     for val, direction in zip(lst, directions):
         if direction:
             hd1.pushright(val)
         else:
             hd1.pushleft(val)
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     for val, direction in zip(lst, directions):
         if direction:
             hd2.pushright(val)
@@ -423,8 +423,8 @@ def test_pushes_are_always_associative_by_direction(trio):
 @given(alphabet_and_initial_list_strategy())
 def test_pushleft_and_pushright_are_opposites(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet)
-    hd2 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     left = 0
     right = len(lst) - 1
     while left < len(lst):
@@ -439,7 +439,7 @@ def test_pushleft_and_pushright_are_opposites(pair):
 def test_peekright_does_not_change_length(pair):
     alphabet, lst = pair
     assume(lst)
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     length = len(hd)
@@ -451,7 +451,7 @@ def test_peekright_does_not_change_length(pair):
 def test_peekleft_does_not_change_length(pair):
     alphabet, lst = pair
     assume(lst)
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     length = len(hd)
@@ -462,7 +462,7 @@ def test_peekleft_does_not_change_length(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_peekright_never_changes_length(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     size = 0
     for i in lst:
         size += 1
@@ -474,7 +474,7 @@ def test_peekright_never_changes_length(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_peekleft_constant_when_only_pushright(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
         assert hd.peekleft() == lst[0]
@@ -483,7 +483,7 @@ def test_peekleft_constant_when_only_pushright(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_peekright_constant_when_only_pushleft(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushleft(i)
         assert hd.peekright() == lst[0]
@@ -492,7 +492,7 @@ def test_peekright_constant_when_only_pushleft(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_peekright_always_what_was_last_pushed(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
         assert hd.peekright() == i
@@ -501,7 +501,7 @@ def test_peekright_always_what_was_last_pushed(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_peekleft_always_what_was_last_pushed(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushleft(i)
         assert hd.peekleft() == i
@@ -510,8 +510,8 @@ def test_peekleft_always_what_was_last_pushed(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_peekright_result_is_unique_to_parameter(pair):
     alphabet, lst = pair
-    holodeques = [holodeque(alphabet) for _ in alphabet]
-    hd = holodeque(alphabet)
+    holodeques = [holodeque(alphabet=alphabet) for _ in alphabet]
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         for hd in holodeques:
             hd.pushright(i)
@@ -523,8 +523,8 @@ def test_peekright_result_is_unique_to_parameter(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_peekleft_result_is_unique_to_parameter(pair):
     alphabet, lst = pair
-    holodeques = [holodeque(alphabet) for _ in alphabet]
-    hd = holodeque(alphabet)
+    holodeques = [holodeque(alphabet=alphabet) for _ in alphabet]
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         for hd in holodeques:
             hd.pushright(i)
@@ -537,7 +537,7 @@ def test_peekleft_result_is_unique_to_parameter(pair):
 def test_peeks_are_never_changed_by_opposite_pushes(trio):
     alphabet, lst, directions = trio
     assume(lst)
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     leftmost = rightmost = lst[0]
     for val, direction in zip(lst, directions):
         if direction:
@@ -553,7 +553,7 @@ def test_peeks_are_never_changed_by_opposite_pushes(trio):
 @given(alphabet_and_initial_list_strategy())
 def test_popright_always_decrements_size(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     size = len(hd)
@@ -566,7 +566,7 @@ def test_popright_always_decrements_size(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_popleft_always_decrements_size(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     size = len(hd)
@@ -579,7 +579,7 @@ def test_popleft_always_decrements_size(pair):
 @given(push_pop_strategy())
 def test_pops_always_decrement_size_even_mixed(trio):
     alphabet, lst, directions = trio
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     size = len(hd)
@@ -596,7 +596,7 @@ def test_pops_always_decrement_size_even_mixed(trio):
 def test_popright_unchanged_by_pushleft(pair):
     alphabet, lst = pair
     assume(lst)
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushleft(i)
     assert hd.peekright() == lst[0] == hd.popright()
@@ -606,7 +606,7 @@ def test_popright_unchanged_by_pushleft(pair):
 def test_popleft_unchanged_by_pushright(pair):
     alphabet, lst = pair
     assume(lst)
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     assert hd.peekleft() == lst[0] == hd.popleft()
@@ -615,7 +615,7 @@ def test_popleft_unchanged_by_pushright(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_popright_returns_last_pushright_value(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
         assert hd.peekright() == i == hd.popright()
@@ -625,7 +625,7 @@ def test_popright_returns_last_pushright_value(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_popleft_returns_last_pushleft_value(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushleft(i)
         assert hd.peekleft() == i == hd.popleft()
@@ -635,7 +635,7 @@ def test_popleft_returns_last_pushleft_value(pair):
 @given(push_pop_strategy())
 def test_popright_always_returns_rightmost(trio):
     alphabet, lst, directions = trio
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     rightmost = 0
     for val, direction in zip(lst, directions):
         hd.pushleft(val)
@@ -647,7 +647,7 @@ def test_popright_always_returns_rightmost(trio):
 @given(push_pop_strategy())
 def test_popleft_always_returns_leftmost(trio):
     alphabet, lst, directions = trio
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     leftmost = 0
     for val, direction in zip(lst, directions):
         hd.pushright(val)
@@ -660,7 +660,7 @@ def test_popleft_always_returns_leftmost(trio):
 def test_peekright_constant_when_popleft(pair):
     alphabet, lst = pair
     assume(lst)
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     rightmost = lst[-1]
@@ -673,7 +673,7 @@ def test_peekright_constant_when_popleft(pair):
 def test_peekleft_constant_when_popright(pair):
     alphabet, lst = pair
     assume(lst)
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     for i in lst:
         hd.pushright(i)
     leftmost = lst[0]
@@ -685,10 +685,10 @@ def test_peekleft_constant_when_popright(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_extendright_from_empty(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     for i in lst:
         hd1.pushright(i)
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     hd2.extendright(lst)
     assert hd1._matrix == hd2._matrix
 
@@ -696,10 +696,10 @@ def test_extendright_from_empty(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_extendleft_from_empty(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet)
+    hd1 = holodeque(alphabet=alphabet)
     for i in lst:
         hd1.pushleft(i)
-    hd2 = holodeque(alphabet)
+    hd2 = holodeque(alphabet=alphabet)
     hd2.extendleft(lst)
     assert hd1._matrix == hd2._matrix
 
@@ -707,8 +707,8 @@ def test_extendleft_from_empty(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_initialization(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet)
-    hd2 = holodeque(alphabet, lst)
+    hd1 = holodeque(alphabet=alphabet)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst)
     for i in lst:
         hd1.pushright(i)
     assert hd1._matrix == hd2._matrix
@@ -717,50 +717,50 @@ def test_initialization(pair):
 @given(two_lists())
 def test_extendright(trio):
     alphabet, lst1, lst2 = trio
-    hd1 = holodeque(alphabet, lst1)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
     for i in lst2:
         hd1.pushright(i)
-    hd2 = holodeque(alphabet, lst1 + lst2)
+    hd2 = holodeque(alphabet=alphabet, iterable = lst1 + lst2)
     assert hd1._matrix == hd2._matrix
 
 
 @given(two_lists())
 def test_extendleft(trio):
     alphabet, lst1, lst2 = trio
-    hd1 = holodeque(alphabet, lst1)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
     for i in lst2:
         hd1.pushleft(i)
-    hd2 = holodeque(alphabet, list(reversed(lst2)) + lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable = list(reversed(lst2)) + lst1)
     assert hd1._matrix == hd2._matrix
 
 
 @given(two_lists())
 def test_concatright(trio):
     alphabet, lst1, lst2 = trio
-    hd1 = holodeque(alphabet, lst1)
-    hd2 = holodeque(alphabet, lst2)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst2)
     hd1.concatright(hd2)
-    hd3 = holodeque(alphabet, lst1 + lst2)
+    hd3 = holodeque(alphabet=alphabet, iterable = lst1 + lst2)
     assert hd1._matrix == hd3._matrix
 
 
 @given(two_lists())
 def test_concatleft(trio):
     alphabet, lst1, lst2 = trio
-    hd1 = holodeque(alphabet, lst1)
-    hd2 = holodeque(alphabet, lst2)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst2)
     hd1.concatleft(hd2)
-    hd3 = holodeque(alphabet, lst2 + lst1)
+    hd3 = holodeque(alphabet=alphabet, iterable = lst2 + lst1)
     assert hd1._matrix == hd3._matrix
 
 
 @given(two_lists())
 def test_concatleft_is_opposite_of_concatright(trio):
     alphabet, lst1, lst2 = trio
-    hd1 = holodeque(alphabet, lst1)
-    hd2 = holodeque(alphabet, lst2)
-    hd3 = holodeque(alphabet, lst1)
-    hd4 = holodeque(alphabet, lst2)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst2)
+    hd3 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd4 = holodeque(alphabet=alphabet, iterable=lst2)
     hd1.concatright(hd2)
     hd4.concatleft(hd3)
     assert hd1._matrix == hd4._matrix
@@ -769,18 +769,18 @@ def test_concatleft_is_opposite_of_concatright(trio):
 @given(alphabet_and_initial_list_strategy())
 def test_concatself(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet, lst)
-    hd2 = holodeque(alphabet, lst)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst)
     hd1.concatright(hd1)
     hd2.concatleft(hd2)
-    hd3 = holodeque(alphabet, lst + lst)
+    hd3 = holodeque(alphabet=alphabet, iterable = lst + lst)
     assert hd1._matrix == hd2._matrix == hd3._matrix
 
 
 @given(alphabet_and_initial_list_strategy())
 def test_concatright_requires_holodeque(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     with pytest.raises(TypeError):
         hd.concatright(lst)
     assert not hd
@@ -789,7 +789,7 @@ def test_concatright_requires_holodeque(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_concatleft_requires_holodeque(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet)
+    hd = holodeque(alphabet=alphabet)
     with pytest.raises(TypeError):
         hd.concatleft(lst)
     assert not hd
@@ -798,8 +798,8 @@ def test_concatleft_requires_holodeque(pair):
 @given(two_alphabets_two_lists())
 def test_concatright_requires_same_alphabet(quad):
     alphabet1, alphabet2, lst1, lst2 = quad
-    hd1 = holodeque(alphabet1, lst1)
-    hd2 = holodeque(alphabet2, lst2)
+    hd1 = holodeque(alphabet=alphabet1, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet2, iterable=lst2)
     if alphabet1 == alphabet2:
         hd1.concatright(hd2)
     else:
@@ -810,8 +810,8 @@ def test_concatright_requires_same_alphabet(quad):
 @given(two_alphabets_two_lists())
 def test_concatleft_requires_same_alphabet(quad):
     alphabet1, alphabet2, lst1, lst2 = quad
-    hd1 = holodeque(alphabet1, lst1)
-    hd2 = holodeque(alphabet2, lst2)
+    hd1 = holodeque(alphabet=alphabet1, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet2, iterable=lst2)
     if alphabet1 == alphabet2:
         hd1.concatleft(hd2)
     else:
@@ -822,10 +822,10 @@ def test_concatleft_requires_same_alphabet(quad):
 @given(two_lists())
 def test_extendright_with_another_holodeque_calls_concatright(trio):
     alphabet, lst1, lst2 = trio
-    hd1 = holodeque(alphabet, lst1)
-    hd2 = holodeque(alphabet, lst1)
-    hd3 = holodeque(alphabet, lst2)
-    hd4 = holodeque(alphabet, lst2)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd3 = holodeque(alphabet=alphabet, iterable=lst2)
+    hd4 = holodeque(alphabet=alphabet, iterable=lst2)
     hd1.extendright(hd3)
     hd2.concatright(hd4)
     assert hd1._matrix == hd2._matrix
@@ -834,7 +834,7 @@ def test_extendright_with_another_holodeque_calls_concatright(trio):
 @given(alphabet_and_initial_list_strategy())
 def test_copy(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet, lst)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst)
     hd2 = hd1.copy()
     assert hd1 is not hd2
     assert hd1._alphabet == hd2._alphabet and hd1._alphabet is not hd2._alphabet
@@ -850,22 +850,22 @@ def test_copy(pair):
 @given(alphabet_and_initial_list_strategy())
 def test_iterator(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     assert list(hd) == lst
 
 
 @given(alphabet_and_initial_list_strategy())
 def test_reversed(pair):
     alphabet, lst = pair
-    hd = holodeque(alphabet, lst)
+    hd = holodeque(alphabet=alphabet, iterable=lst)
     assert list(reversed(hd)) == list(reversed(lst))
 
 
 @given(alphabet_and_initial_list_strategy())
 def test_equality(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet, lst)
-    hd2 = holodeque(alphabet, lst)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst)
     assert hd1 == hd2
     assert not (hd1 != hd2)
 
@@ -873,8 +873,8 @@ def test_equality(pair):
 @given(two_lists())
 def test_inequality(trio):
     alphabet, lst1, lst2 = trio
-    hd1 = holodeque(alphabet, lst1)
-    hd2 = holodeque(alphabet, lst2)
+    hd1 = holodeque(alphabet=alphabet, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst2)
     assert (lst1 == lst2) == (hd1 == hd2)
     assert (lst1 != lst2) == (hd1 != hd2)
     assert (not (hd1 == hd2)) == (hd1 != hd2)
@@ -883,8 +883,8 @@ def test_inequality(trio):
 @given(two_alphabets_two_lists())
 def test_equality_despite_different_alphabets(quad):
     alphabet1, alphabet2, lst1, lst2 = quad
-    hd1 = holodeque(alphabet1, lst1)
-    hd2 = holodeque(alphabet2, lst2)
+    hd1 = holodeque(alphabet=alphabet1, iterable=lst1)
+    hd2 = holodeque(alphabet=alphabet2, iterable=lst2)
     assert (lst1 == lst2) == (hd1 == hd2)
     assert (lst1 != lst2) == (hd1 != hd2)
     assert (not (hd1 == hd2)) == (hd1 != hd2)
@@ -893,8 +893,8 @@ def test_equality_despite_different_alphabets(quad):
 @given(alphabet_and_initial_list_strategy())
 def test_clear(pair):
     alphabet, lst = pair
-    hd1 = holodeque(alphabet)
-    hd2 = holodeque(alphabet, lst)
+    hd1 = holodeque(alphabet=alphabet)
+    hd2 = holodeque(alphabet=alphabet, iterable=lst)
     hd2.clear()
     assert hd1 == hd2
 
@@ -903,7 +903,7 @@ def test_clear(pair):
 @given(deque_simulation_strategy())
 def test_deque_simulation(quartet):
     alphabet, lst1, lst2, actions = quartet
-    hd = holodeque(alphabet, lst1)
+    hd = holodeque(alphabet=alphabet, iterable=lst1)
     d = deque(lst1)
     assert list(d) == list(hd)
     for data, decision in zip(lst2, actions):
