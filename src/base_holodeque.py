@@ -8,8 +8,7 @@ corresponds to a unique output matrix.
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Hashable, Set
-from functools import wraps
+from collections.abc import Hashable, Set
 from typing import Any, Iterable, Iterator, Optional, Protocol, Self
 
 
@@ -349,19 +348,12 @@ class BaseHolodeque[NL: NumberLike, T: Hashable](ABC):
               has its elements mapped differently, or if concat would exceed maxlen.
         """
 
+    @abstractmethod
     def clear(self) -> None:
         """Empties the holodeque.
 
         Resets the base matrix in-place into an identity matrix of the same shape.
         """
-        if self._size:
-            for i in range(self._shape):
-                for j in range(self._shape):
-                    if i == j:
-                        self._matrix[i][j] //= self._matrix[i][j]  # 1
-                    else:
-                        self._matrix[i][j] -= self._matrix[i][j]  # 0
-            self._size = 0
 
     def __iter__(self) -> Iterator[T]:
         """Returns an iterator that can traverse a copy of the holodeque from left to right."""

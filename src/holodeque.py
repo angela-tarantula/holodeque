@@ -1,13 +1,13 @@
-"""A fixed-alphabet holodeque implementation."""
+"""A fixed-alphabet holodeque in pure Python."""
 
-from collections.abc import Hashable, Set, Callable
-from typing import Iterable, Optional, Self, Any, override
-from functools import wraps
+from collections.abc import Hashable, Callable, Iterable, Set
+from typing import Self, Optional, override
 
-from src.base_holodeque import BaseHolodeque, Matrix
+from src.base_holodeque import Matrix
+from src.alphabetized_holodeque import AlphabeticHolodeque
 
 
-class holodeque[T: Hashable](BaseHolodeque[int, T]):
+class holodeque[T: Hashable](AlphabeticHolodeque[int, T]):
     """A holodeque with a predefined alphabet (acceptable input).   
 
     Attributes:
@@ -18,48 +18,17 @@ class holodeque[T: Hashable](BaseHolodeque[int, T]):
         _alphabet: The set of unique elements that the holodeque can contain.
         _element_tuple: An tuple of acceptable input for the holodeque.
         _element_map: A hashmap that maps each containable element to an index in _element_tuple.
-        _kwargs: A dictionary for additional optional parameters.
     """
-
+    
     @override
     def __init__(self, iterable: Iterable[T] = (), *, alphabet: Set[T], maxlen: Optional[int] = None) -> None:
-        """Initializes a holodeque with the provided iterable.
-
-        Args:
-            alphabet: The set of unique elements that the holodeque can contain.
-            iterable: An Iterable of elements to populate the holodeque.
-            maxlen: Optional maximum size of the holodeque; if not None, restricts
-                    the number of elements.
-            _kwargs: A dictionary for additional optional parameters.
-        """
-        super().__init__(maxlen=maxlen, alphabet=frozenset(alphabet))
-        if len(alphabet) < 2:
-            raise ValueError("alphabet must contain at least 2 elements")
-        self._matrix: Matrix[int] = self.__class__.identity(len(alphabet))
-        self._shape: int = len(alphabet)
-        self._alphabet: frozenset[T] = frozenset(alphabet)
-        self._element_tuple: tuple[T, ...] = tuple(alphabet)
-        self._element_map: dict[T, int] = {
-            letter: i for i, letter in enumerate(self._element_tuple)}
-        self.extendright(iterable)
+        super().__init__(iterable, alphabet=alphabet, maxlen=maxlen)
     
-    @staticmethod
-    def identity(n: int) -> Matrix[int]:
-        """Creates an nxn identity matrix"""
+    @override
+    def _identity(self, n: int) -> Matrix[int]:
         if n < 1:
             raise ValueError("n must be positive.")
         return [[int(i == j) for j in range(n)] for i in range(n)]
-
-    @override
-    def _get_axis(self, element: T) -> int:
-        if element not in self._alphabet:
-            raise ValueError(
-                f"The holodeque does not accept the element: {element}")
-        return self._element_map[element]
-
-    @override
-    def _get_element(self, axis: int) -> T:
-        return self._element_tuple[axis]
     
     @override
     def concatleft(self, other: Self) -> None:
@@ -77,13 +46,8 @@ class holodeque[T: Hashable](BaseHolodeque[int, T]):
             # calculate new_col to replace col
             new_col: list[int] = [
                 sum(
-                    (
-                        other._matrix[convert(row)][convert(
-                            x)] * self._matrix[x][col]
-                        for x in range(1, self._shape)
-                    ),
-                    start=other._matrix[convert(row)][convert(
-                        0)] * self._matrix[0][col]
+                    other._matrix[convert(row)][convert(x)] * self._matrix[x][col]
+                    for x in range(self._shape)
                 )
                 for row in range(self._shape)
             ]
@@ -109,13 +73,8 @@ class holodeque[T: Hashable](BaseHolodeque[int, T]):
             # calculate new_row to replace row
             new_row: list[int] = [
                 sum(
-                    (
-                        self._matrix[row][x] *
-                        other._matrix[convert(x)][convert(col)]
-                        for x in range(1, self._shape)
-                    ),
-                    start=self._matrix[row][0] *
-                    other._matrix[convert(0)][convert(col)]
+                    self._matrix[row][x] * other._matrix[convert(x)][convert(col)]
+                    for x in range(self._shape)
                 )
                 for col in range(self._shape)
             ]
@@ -124,7 +83,16 @@ class holodeque[T: Hashable](BaseHolodeque[int, T]):
                 self._matrix[row][col] = new_row[col]
         self._size += other.size
     
-    
+    @override
+    def clear(self) -> None:
+        if self._size:
+            for i in range(self._shape):
+                for j in range(self._shape):
+                    if i == j:
+                        self._matrix[i][j] = 1
+                    else:
+                        self._matrix[i][j] = 0
+            self._size = 0
 
 
 if __name__ == "__main__":
