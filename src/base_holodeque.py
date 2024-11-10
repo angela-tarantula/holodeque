@@ -13,7 +13,6 @@ from functools import wraps
 from typing import (Any, Iterable, Iterator, Optional, Protocol, Self,
                     SupportsInt)
 
-
 # typing protocol
 class MatrixRow[R: SupportsInt](Protocol):
 
@@ -325,7 +324,7 @@ class BaseHolodeque[T: Hashable](ABC):
             raise e
 
     @staticmethod
-    def compatible[V: BaseHolodeque[T], W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
+    def compatible[V: BaseHolodeque, W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
         """Confirms that two holodeques accept the same input.
 
         Raises:
@@ -354,7 +353,7 @@ class BaseHolodeque[T: Hashable](ABC):
 
         Raises:
             ValueError: If the other holodeque has a different base matrix shape, 
-              has its elements mapped differently, or if merge would exceed maxlen.
+              has its elements mapped differently, or if concat would exceed maxlen.
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
@@ -386,7 +385,7 @@ class BaseHolodeque[T: Hashable](ABC):
 
         Raises:
             ValueError: If the other holodeque has a different base matrix shape, 
-              has its elements mapped differently, or if merge would exceed maxlen.
+              has its elements mapped differently, or if concat would exceed maxlen.
         """
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(

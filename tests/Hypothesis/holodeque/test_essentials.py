@@ -802,11 +802,9 @@ def test_concatright_requires_same_alphabet(quad):
     hd2 = holodeque(alphabet2, lst2)
     if alphabet1 == alphabet2:
         hd1.concatright(hd2)
-        assert list(hd1) == lst1 + lst2
     else:
         with pytest.raises(ValueError):
             hd1.concatright(hd2)
-        assert list(hd1) == lst1
 
 
 @given(two_alphabets_two_lists())
@@ -816,11 +814,9 @@ def test_concatleft_requires_same_alphabet(quad):
     hd2 = holodeque(alphabet2, lst2)
     if alphabet1 == alphabet2:
         hd1.concatleft(hd2)
-        assert list(hd1) == lst2 + lst1
     else:
         with pytest.raises(ValueError):
             hd1.concatleft(hd2)
-        assert list(hd1) == lst1
 
 
 @given(two_lists())

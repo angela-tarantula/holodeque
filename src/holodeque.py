@@ -1,7 +1,7 @@
 """A fixed-alphabet holodeque implementation."""
 
 from collections.abc import Hashable, Set
-from typing import Iterable, Optional, override
+from typing import Iterable, Optional, Self, override
 
 from src.base_holodeque import BaseHolodeque, Matrix
 
@@ -52,6 +52,18 @@ class holodeque[T: Hashable](BaseHolodeque[T]):
     @override
     def _get_element(self, axis: int) -> T:
         return self._element_tuple[axis]
+
+    @override
+    def copy(self: Self) -> Self:
+        new_holodeque: Self = self.__class__(
+            maxlen=self._maxlen, **self._kwargs)
+        new_holodeque._element_tuple = tuple(
+            elem for elem in self._element_tuple)
+        new_holodeque._element_map = {
+            key: val for key, val in self._element_map.items()}
+        if self._maxlen != 0:
+            new_holodeque.concatright(self)
+        return new_holodeque
 
 
 if __name__ == "__main__":
