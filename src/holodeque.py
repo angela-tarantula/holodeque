@@ -8,7 +8,7 @@ from src.alphabetized_holodeque import AlphabeticHolodeque
 
 
 class holodeque[T: Hashable](AlphabeticHolodeque[int, T]):
-    """A holodeque with a predefined alphabet (acceptable input).   
+    """A holodeque with a predefined alphabet.   
 
     Attributes:
         _matrix: A square matrix representing the state of the holodeque.
@@ -29,6 +29,26 @@ class holodeque[T: Hashable](AlphabeticHolodeque[int, T]):
         if n < 1:
             raise ValueError("n must be positive.")
         return [[int(i == j) for j in range(n)] for i in range(n)]
+    
+    @override
+    def _transform(self, axis: int, left: bool = True, reverse: bool = False) -> None:
+        for i in range(self._shape):
+            if i == axis:
+                continue
+            for j in range(self._shape):
+                match (left, reverse):
+                    case (True, True):
+                        # Subtract other rows from row of axis
+                        self._matrix[axis][j] -= self._matrix[i][j]
+                    case (True, False):
+                        # Add row other rows to row of axis
+                        self._matrix[axis][j] += self._matrix[i][j]
+                    case (False, True):
+                        # Subtract column of axis from other columns
+                        self._matrix[j][i] -= self._matrix[j][axis]
+                    case (False, False):
+                        # Add column of axis to other columns
+                        self._matrix[j][i] += self._matrix[j][axis]
     
     @override
     def concatleft(self, other: Self) -> None:

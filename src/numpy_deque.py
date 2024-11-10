@@ -10,7 +10,7 @@ from src.alphabetized_holodeque import AlphabeticHolodeque
 
 
 class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
-    """A holodeque with a predefined alphabet (acceptable input).   
+    """A holodeque with a predefined alphabet.   
 
     Attributes:
         _matrix: A square numpy matrix representing the state of the holodeque.
@@ -51,9 +51,9 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
 
     @override
     def concatleft(self, other: Self) -> None:
-        if self._element_tuple != other._element_tuple:
+        if self._alphabet != other._alphabet:
             raise ValueError(
-                "incompatible holodeque because they have different alphabet mappings")
+                "incompatible holodeque because they have different alphabets")
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
@@ -68,9 +68,9 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
 
     @override
     def concatright(self, other: Self) -> None:
-        if self._element_tuple != other._element_tuple:
+        if self._alphabet != other._alphabet:
             raise ValueError(
-                "incompatible holodeque because they have different alphabet mappings")
+                "incompatible holodeque because they have different alphabets")
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
