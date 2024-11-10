@@ -1,7 +1,8 @@
 """A fixed-alphabet holodeque implementation."""
 
-from collections.abc import Hashable, Set
-from typing import Iterable, Optional, Self, override
+from collections.abc import Hashable, Set, Callable
+from typing import Iterable, Optional, Self, Any, override
+from functools import wraps
 
 from src.base_holodeque import BaseHolodeque, Matrix
 
@@ -21,7 +22,7 @@ class holodeque[T: Hashable](BaseHolodeque[int, T]):
     """
 
     @override
-    def __init__(self, alphabet: Set[T], iterable: Iterable[T] = (), maxlen: Optional[int] = None, **kwargs) -> None:
+    def __init__(self, iterable: Iterable[T] = (), *, alphabet: Set[T], maxlen: Optional[int] = None) -> None:
         """Initializes a holodeque with the provided iterable.
 
         Args:
@@ -31,16 +32,23 @@ class holodeque[T: Hashable](BaseHolodeque[int, T]):
                     the number of elements.
             _kwargs: A dictionary for additional optional parameters.
         """
-        super().__init__(maxlen=maxlen, alphabet=frozenset(alphabet), **kwargs)
+        super().__init__(maxlen=maxlen, alphabet=frozenset(alphabet))
         if len(alphabet) < 2:
             raise ValueError("alphabet must contain at least 2 elements")
-        self._matrix: Matrix[int] = self.identity(len(alphabet))
+        self._matrix: Matrix[int] = self.__class__.identity(len(alphabet))
         self._shape: int = len(alphabet)
         self._alphabet: frozenset[T] = frozenset(alphabet)
         self._element_tuple: tuple[T, ...] = tuple(alphabet)
         self._element_map: dict[T, int] = {
             letter: i for i, letter in enumerate(self._element_tuple)}
         self.extendright(iterable)
+    
+    @staticmethod
+    def identity(n: int) -> Matrix[int]:
+        """Creates an nxn identity matrix"""
+        if n < 1:
+            raise ValueError("n must be positive.")
+        return [[int(i == j) for j in range(n)] for i in range(n)]
 
     @override
     def _get_axis(self, element: T) -> int:
@@ -52,18 +60,71 @@ class holodeque[T: Hashable](BaseHolodeque[int, T]):
     @override
     def _get_element(self, axis: int) -> T:
         return self._element_tuple[axis]
-
+    
     @override
-    def copy(self: Self) -> Self:
-        new_holodeque: Self = self.__class__(
-            maxlen=self._maxlen, **self._kwargs)
-        new_holodeque._element_tuple = tuple(
-            elem for elem in self._element_tuple)
-        new_holodeque._element_map = {
-            key: val for key, val in self._element_map.items()}
-        if self._maxlen != 0:
-            new_holodeque.concatright(self)
-        return new_holodeque
+    def concatleft(self, other: Self) -> None:
+        if self._alphabet != other._alphabet:
+            raise ValueError(
+                "incompatible holodeque because they have different alphabets")
+        if self._maxlen is not None and self._size + other._size > self._maxlen:
+            raise ValueError(
+                "incompatible holodeque because it would exceed maximum length")
+        if self is other:
+            other = self.copy()
+        convert: Callable[[int], int] = lambda x: other._get_axis(
+            self._get_element(x))
+        for col in range(self._shape):
+            # calculate new_col to replace col
+            new_col: list[int] = [
+                sum(
+                    (
+                        other._matrix[convert(row)][convert(
+                            x)] * self._matrix[x][col]
+                        for x in range(1, self._shape)
+                    ),
+                    start=other._matrix[convert(row)][convert(
+                        0)] * self._matrix[0][col]
+                )
+                for row in range(self._shape)
+            ]
+            # replace col with new_col
+            for row in range(self._shape):
+                self._matrix[row][col] = new_col[row]
+        self._size += other.size
+    
+    
+    @override
+    def concatright(self, other: Self) -> None:
+        if self._alphabet != other._alphabet:
+            raise ValueError(
+                "incompatible holodeque because they have different alphabets")
+        if self._maxlen is not None and self._size + other._size > self._maxlen:
+            raise ValueError(
+                "incompatible holodeque because it would exceed maximum length")
+        if self is other:
+            other = self.copy()
+        convert: Callable[[int], int] = lambda x: other._get_axis(
+            self._get_element(x))
+        for row in range(self._shape):
+            # calculate new_row to replace row
+            new_row: list[int] = [
+                sum(
+                    (
+                        self._matrix[row][x] *
+                        other._matrix[convert(x)][convert(col)]
+                        for x in range(1, self._shape)
+                    ),
+                    start=self._matrix[row][0] *
+                    other._matrix[convert(0)][convert(col)]
+                )
+                for col in range(self._shape)
+            ]
+            # replace row with new_row
+            for col in range(self._shape):
+                self._matrix[row][col] = new_row[col]
+        self._size += other.size
+    
+    
 
 
 if __name__ == "__main__":

@@ -10,12 +10,11 @@ corresponds to a unique output matrix.
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Hashable, Set
 from functools import wraps
-from typing import (Any, Iterable, Iterator, Optional, Protocol, Self,
-                    SupportsInt)
+from typing import Any, Iterable, Iterator, Optional, Protocol, Self
 
 
 # typing protocol
-class SupportsBasicArithmetic(Protocol):
+class NumberLike(Protocol):
     def __add__(self, other: Self) -> Self:
         ...
 
@@ -25,9 +24,14 @@ class SupportsBasicArithmetic(Protocol):
     def __mul__(self, other: Self) -> Self:
         ...
 
+    def __floordiv__(self, other: Self) -> Self:
+        ...
+
+    def __gt__(self, other: Self) -> Any:
+        ...
 
 # typing protocol
-class MatrixRow[R: SupportsBasicArithmetic](Protocol):
+class MatrixRow[R: NumberLike](Protocol):
 
     def __getitem__(self, index: int) -> R:
         ...
@@ -43,7 +47,7 @@ class MatrixRow[R: SupportsBasicArithmetic](Protocol):
 
 
 # typing protocol
-class Matrix[S: SupportsBasicArithmetic](Protocol):
+class Matrix[S: NumberLike](Protocol):
 
     def __getitem__(self, index: int) -> MatrixRow[S]:
         ...
@@ -55,7 +59,7 @@ class Matrix[S: SupportsBasicArithmetic](Protocol):
         ...
 
 
-class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
+class BaseHolodeque[NL: NumberLike, T: Hashable](ABC):
     """Abstract base class for the holodeque data structure.
 
     Attributes:
@@ -67,7 +71,7 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
         _kwargs: A dictionary for additional optional parameters.
     """
 
-    def __init__(self, maxlen: Optional[int] = None, **kwargs) -> None:
+    def __init__(self, iterable: Iterable[T] = (), *, maxlen: Optional[int] = None, **kwargs) -> None:
         """Initializes a holodeque with the provided iterable.
 
         Args:
@@ -80,7 +84,7 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
         """
         if maxlen is not None and maxlen < 0:
             raise ValueError("maxlen must be non-negative")
-        self._matrix: Matrix[int]
+        self._matrix: Matrix[NL]
         self._shape: int
         self._alphabet: Set[T]
         self._size: int = 0
@@ -106,23 +110,6 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
     def alphabet(self) -> Set[T]:
         """The set of unique elements that the holodeque can contain."""
         return self._alphabet
-
-    @staticmethod
-    def identity(n: int) -> Matrix[int]:
-        """Creates an nxn identity matrix.
-
-        Args:
-            n: A positive integer representing the size of the matrix.
-
-        Returns:
-            A Matrix representing the nxn identity matrix.
-
-        Raises:
-            ValueError: If n is not a positive integer.
-        """
-        if n < 1:
-            raise ValueError("n must be positive.")
-        return [[int(i == j) for j in range(n)] for i in range(n)]
 
     @abstractmethod
     def _get_axis(self, element: T) -> int:
@@ -330,32 +317,11 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
         """
         try:
             self.concatright(iterable)  # type: ignore
-        except (TypeError, ValueError):
+        except:
             for elem in iterable:
                 self.pushright(elem)
-        except Exception as e:
-            raise e
 
-    @staticmethod
-    def compatible[V: BaseHolodeque, W](func: Callable[[V, V], W]) -> Callable[[V, V], W]:
-        """Confirms that two holodeques accept the same input.
-
-        Raises:
-            ValueError: If the holodeques have a different base matrix shape or they 
-              accept different elements.
-        """
-        @wraps(func)
-        def wrapper(first: V, second: V) -> W:
-            if not isinstance(second, type(first)):
-                raise TypeError(
-                    f"incompatible type '{type(second).__name__}' with '{type(first).__name__}'")
-            elif first._alphabet != second._alphabet:
-                raise ValueError(
-                    "incompatible holodeque because it accepts different elements")
-            return func(first, second)
-        return wrapper
-
-    @compatible
+    @abstractmethod
     def concatleft(self, other: Self) -> None:
         """Concatenate another holodeque to the left end of this holodeque.
 
@@ -368,26 +334,8 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
             ValueError: If the other holodeque has a different base matrix shape, 
               has its elements mapped differently, or if concat would exceed maxlen.
         """
-        if self._maxlen is not None and self._size + other._size > self._maxlen:
-            raise ValueError(
-                "incompatible holodeque because it would exceed maximum length")
-        if self is other:
-            other = self.copy()
-        convert: Callable[[int], int] = lambda x: other._get_axis(
-            self._get_element(x))
-        for col in range(self._shape):
-            # calculate new_col to replace col
-            new_col: list[int] = [0] * self._shape
-            for row in range(self._shape):
-                for x in range(self._shape):
-                    new_col[row] += other._matrix[convert(row)][convert(x)] * \
-                        self._matrix[x][col]
-            # replace col with new_col
-            for row in range(self._shape):
-                self._matrix[row][col] = new_col[row]
-        self._size += other.size
 
-    @compatible
+    @abstractmethod
     def concatright(self, other: Self) -> None:
         """Concatenate another holodeque to the right end of this holodeque.
 
@@ -400,24 +348,6 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
             ValueError: If the other holodeque has a different base matrix shape, 
               has its elements mapped differently, or if concat would exceed maxlen.
         """
-        if self._maxlen is not None and self._size + other._size > self._maxlen:
-            raise ValueError(
-                "incompatible holodeque because it would exceed maximum length")
-        if self is other:
-            other = self.copy()
-        convert: Callable[[int], int] = lambda x: other._get_axis(
-            self._get_element(x))
-        for row in range(self._shape):
-            # calculate new_row to replace row
-            new_row: list[int] = [0] * self._shape
-            for col in range(self._shape):
-                for x in range(self._shape):
-                    new_row[col] += self._matrix[row][x] * \
-                        other._matrix[convert(x)][convert(col)]
-            # replace row with new_row
-            for col in range(self._shape):
-                self._matrix[row][col] = new_row[col]
-        self._size += other.size
 
     def clear(self) -> None:
         """Empties the holodeque.
@@ -427,16 +357,19 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
         if self._size:
             for i in range(self._shape):
                 for j in range(self._shape):
-                    self._matrix[i][j] = int(i == j)
+                    if i == j:
+                        self._matrix[i][j] //= self._matrix[i][j]  # 1
+                    else:
+                        self._matrix[i][j] -= self._matrix[i][j]  # 0
             self._size = 0
 
     def __iter__(self) -> Iterator[T]:
         """Returns an iterator that can traverse a copy of the holodeque from left to right."""
-        return HolodequeIterator[SBA, T](self, reverse=False)
+        return HolodequeIterator[NL, T](self, reverse=False)
 
     def __reversed__(self) -> Iterator[T]:
         """Returns an iterator that can traverse a copy of the holodeque from right to left."""
-        return HolodequeIterator[SBA, T](self, reverse=True)
+        return HolodequeIterator[NL, T](self, reverse=True)
 
     def reverse(self) -> None:
         """Reverses the holodeque in-place."""
@@ -654,19 +587,16 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
             raise TypeError(f"'>=' not supported between instances of holodeque and '{
                             type(other).__name__}'")
 
-    @compatible
     def __add__(self, other: Self) -> Self:
         new_copy: Self = self.copy()
         new_copy.concatright(other)
         return new_copy
 
-    @compatible
     def __radd__(self, other: Self) -> Self:
         new_copy: Self = self.copy()
         new_copy.concatright(other)
         return new_copy
 
-    @compatible
     def __iadd__(self, other: Self) -> Self:
         self.concatright(other)
         return self
@@ -721,7 +651,7 @@ class BaseHolodeque[SBA: SupportsBasicArithmetic, T: Hashable](ABC):
                 f"can't multiply sequence by non-int of type {type(multiple).__name__}")
 
 
-class HolodequeIterator[SBA2: SupportsBasicArithmetic, T2: Hashable]:
+class HolodequeIterator[NL2: NumberLike, T2: Hashable]:
     """Iterator for traversing a holodeque.
 
     Yields each element from the holodeque by popping from a copy.
@@ -732,14 +662,14 @@ class HolodequeIterator[SBA2: SupportsBasicArithmetic, T2: Hashable]:
            yields elements from left to right.
     """
 
-    def __init__(self, holodeq: BaseHolodeque[SBA2, T2], reverse: bool = False) -> None:
+    def __init__(self, holodeq: BaseHolodeque[NL2, T2], reverse: bool = False) -> None:
         """Initializes the iterator for a holodeque.
 
         Args:
             holodeq: A holodeque to iterate over.
             reverse: A bool indicating the direction of iteration.
         """
-        self._holodeq: BaseHolodeque[SBA2, T2] = holodeq.copy()
+        self._holodeq: BaseHolodeque[NL2, T2] = holodeq.copy()
         self._reverse: bool = reverse
 
     def __iter__(self) -> Iterator[T2]:

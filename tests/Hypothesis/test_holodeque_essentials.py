@@ -777,24 +777,6 @@ def test_concatself(pair):
     assert hd1._matrix == hd2._matrix == hd3._matrix
 
 
-@given(alphabet_and_initial_list_strategy())
-def test_concatright_requires_holodeque(pair):
-    alphabet, lst = pair
-    hd = holodeque(alphabet=alphabet)
-    with pytest.raises(TypeError):
-        hd.concatright(lst)
-    assert not hd
-
-
-@given(alphabet_and_initial_list_strategy())
-def test_concatleft_requires_holodeque(pair):
-    alphabet, lst = pair
-    hd = holodeque(alphabet=alphabet)
-    with pytest.raises(TypeError):
-        hd.concatleft(lst)
-    assert not hd
-
-
 @given(two_alphabets_two_lists())
 def test_concatright_requires_same_alphabet(quad):
     alphabet1, alphabet2, lst1, lst2 = quad

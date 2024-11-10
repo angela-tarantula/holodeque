@@ -1,15 +1,14 @@
 """A numpy implementation of holodeque."""
 
-from collections.abc import Hashable
-from typing import Callable, Self, override, Protocol
+from collections.abc import Hashable, Set, Iterable
+from typing import Callable, Optional, Self, override
 
 import numpy as np
 
 from src.base_holodeque import BaseHolodeque, Matrix
-from src.holodeque import holodeque
 
 
-class numpydeque[T: Hashable](holodeque[T]):
+class numpydeque[T: Hashable](BaseHolodeque[np.int64, T]):
     """A holodeque with a predefined alphabet (acceptable input).   
 
     Attributes:
@@ -23,18 +22,43 @@ class numpydeque[T: Hashable](holodeque[T]):
         _kwargs: A dictionary for additional optional parameters.
     """
 
+    @override
+    def __init__(self, iterable: Iterable[T] = (), *, alphabet: Set[T], maxlen: Optional[int] = None, **kwargs) -> None:
+        """Initializes a holodeque with the provided iterable.
+
+        Args:
+            alphabet: The set of unique elements that the holodeque can contain.
+            iterable: An Iterable of elements to populate the holodeque.
+            maxlen: Optional maximum size of the holodeque; if not None, restricts
+                    the number of elements.
+            _kwargs: A dictionary for additional optional parameters.
+        """
+        super().__init__(maxlen=maxlen, alphabet=frozenset(alphabet), **kwargs)
+        if len(alphabet) < 2:
+            raise ValueError("alphabet must contain at least 2 elements")
+        self._matrix: Matrix[np.int64] = self.__class__.identity(len(alphabet))
+        self._shape: int = len(alphabet)
+        self._alphabet: frozenset[T] = frozenset(alphabet)
+        self._element_tuple: tuple[T, ...] = tuple(alphabet)
+        self._element_map: dict[T, int] = {
+            letter: i for i, letter in enumerate(self._element_tuple)}
+        self.extendright(iterable)
+
     @staticmethod
-    def identity(n: int) -> Matrix[int]:
+    def identity(n: int) -> Matrix[np.int64]:
+        """Creates an nxn identity matrix"""
         return np.eye(n, dtype=np.int64)
 
     @override
-    def clear(self) -> None:
-        if self._size:
-            temp: Matrix[int] = self.identity(self._shape)
-            for i in range(self._shape):
-                for j in range(self._shape):
-                    self._matrix[i][j] = temp[i][j]
-            self._size = 0
+    def _get_axis(self, element: T) -> int:
+        if element not in self._alphabet:
+            raise ValueError(
+                f"The holodeque does not accept the element: {element}")
+        return self._element_map[element]
+
+    @override
+    def _get_element(self, axis: int) -> T:
+        return self._element_tuple[axis]
 
     @override
     def _transform(self, axis: int, left: bool = True, reverse: bool = False) -> None:
@@ -56,8 +80,12 @@ class numpydeque[T: Hashable](holodeque[T]):
                     self._matrix[:, i] += self._matrix[:, axis]  # type: ignore
 
     @override
-    @BaseHolodeque.compatible
     def concatleft(self, other: Self) -> None:
+        if not isinstance(other, type(self)):
+            raise TypeError
+        if self._alphabet != other._alphabet:
+            raise ValueError(
+                "incompatible holodeque because they have different alphabets")
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
@@ -65,14 +93,18 @@ class numpydeque[T: Hashable](holodeque[T]):
             other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
             self._get_element(x))
-        temp: Matrix[int] = np.array(
+        temp: Matrix[np.int64] = np.array(
             [other._matrix[convert(i)] for i in range(self._shape)])
-        self._matrix = np.matmul(temp, self._matrix)  # type: ignore
+        self._matrix = np.matmul(temp, self._matrix) # type: ignore
         self._size += other.size
 
     @override
-    @BaseHolodeque.compatible
     def concatright(self, other: Self) -> None:
+        if not isinstance(other, type(self)):
+            raise TypeError
+        if self._alphabet != other._alphabet:
+            raise ValueError(
+                "incompatible holodeque because they have different alphabets")
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
@@ -80,10 +112,31 @@ class numpydeque[T: Hashable](holodeque[T]):
             other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
             self._get_element(x))
-        temp: Matrix[int] = np.array(
+        temp: Matrix[np.int64] = np.array(
             [other._matrix[convert(i)] for i in range(self._shape)])
         self._matrix = np.matmul(self._matrix, temp)  # type: ignore
         self._size += other.size
+
+    @override
+    def clear(self) -> None:
+        if self._size:
+            temp: Matrix[np.int64] = self.identity(self._shape)
+            for i in range(self._shape):
+                for j in range(self._shape):
+                    self._matrix[i][j] = temp[i][j]
+            self._size = 0
+
+    @override
+    def copy(self: Self) -> Self:
+        new_holodeque: Self = self.__class__(
+            maxlen=self._maxlen, **self._kwargs)
+        new_holodeque._element_tuple = tuple(
+            elem for elem in self._element_tuple)
+        new_holodeque._element_map = {
+            key: val for key, val in self._element_map.items()}
+        if self._maxlen != 0:
+            new_holodeque.concatright(self)
+        return new_holodeque
 
 
 if __name__ == "__main__":
