@@ -8,7 +8,7 @@ corresponds to a unique output matrix.
 """
 
 from abc import ABC, abstractmethod
-from collections.abc import Hashable, Set
+from collections.abc import Hashable
 from typing import Any, Iterable, Iterator, Optional, Protocol, Self
 
 

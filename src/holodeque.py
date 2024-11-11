@@ -41,7 +41,7 @@ class holodeque[T: Hashable](AlphabeticHolodeque[int, T]):
                         # Subtract other rows from row of axis
                         self._matrix[axis][j] -= self._matrix[i][j]
                     case (True, False):
-                        # Add row other rows to row of axis
+                        # Add other rows to row of axis
                         self._matrix[axis][j] += self._matrix[i][j]
                     case (False, True):
                         # Subtract column of axis from other columns
