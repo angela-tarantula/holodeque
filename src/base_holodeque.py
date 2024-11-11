@@ -85,8 +85,6 @@ class BaseHolodeque[NL: NumberLike, T: Hashable](ABC):
         if maxlen is not None and maxlen < 0:
             raise ValueError("maxlen must be non-negative")
         self._matrix: Matrix[NL]
-        self._shape = 2
-        self._alphabet: Set[T] = set()
         self._size: int = 0
         self._maxlen: Optional[int] = maxlen
         self._kwargs = kwargs

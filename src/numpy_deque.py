@@ -62,11 +62,10 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
             self._remap(other._element_tuple, other._element_map)
         if self is other:
             other = self.copy()
-        convert: Callable[[int], int] = lambda x: other._get_axis(
-            self._get_element(x))
+        convert: Callable[[int], int] = lambda x: other._get_axis(self._get_element(x))
         temp: Matrix[np.int64] = np.array(
             [other._matrix[convert(i)] for i in range(self._shape)])
-        self._matrix = np.matmul(temp, self._matrix) # type: ignore
+        self._matrix = np.matmul(temp, self._matrix)  # type: ignore
         self._size += other.size
 
     @override
@@ -82,18 +81,17 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
             self._remap(other._element_tuple, other._element_map)
         if self is other:
             other = self.copy()
-        convert: Callable[[int], int] = lambda x: other._get_axis(
-            self._get_element(x))
+        convert: Callable[[int], int] = lambda x: other._get_axis(self._get_element(x))
         temp: Matrix[np.int64] = np.array(
             [other._matrix[convert(i)] for i in range(self._shape)])
         self._matrix = np.matmul(self._matrix, temp)  # type: ignore
         self._size += other.size
-    
+
     def _remap(self, other_element_tuple: tuple[T, ...], other_element_map: dict[T, int]) -> None:
         """Remaps this holodeque's element tuple to match another holodeque's element tuple.
-        
+
         Swaps the rows and columns for each cycle detected.
-        
+
         Args:
             other_element_tuple: The element tuple of the other holodeque.
             other_element_map: The element map of the other holodeque.
@@ -127,18 +125,6 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
                 for j in range(self._shape):
                     self._matrix[i][j] = temp[i][j]
             self._size = 0
-
-    @override
-    def copy(self: Self) -> Self:
-        new_holodeque: Self = self.__class__(
-            maxlen=self._maxlen, **self._kwargs)
-        new_holodeque._element_tuple = tuple(
-            elem for elem in self._element_tuple)
-        new_holodeque._element_map = {
-            key: val for key, val in self._element_map.items()}
-        if self._maxlen != 0:
-            new_holodeque.concatright(self)
-        return new_holodeque
 
 
 if __name__ == "__main__":
