@@ -58,7 +58,8 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
             raise ValueError(
                 "incompatible holodeque because they have different alphabets")
         if self._element_tuple != other._element_tuple:
-            self.remap(other._element_tuple, other._element_map)
+            # prepare for matrix multiplication
+            self._remap(other._element_tuple, other._element_map)
         if self is other:
             other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
@@ -77,7 +78,8 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
             raise ValueError(
                 "incompatible holodeque because they have different alphabets")
         if self._element_tuple != other._element_tuple:
-            self.remap(other._element_tuple, other._element_map)
+            # prepare for matrix multiplication
+            self._remap(other._element_tuple, other._element_map)
         if self is other:
             other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
@@ -87,10 +89,35 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
         self._matrix = np.matmul(self._matrix, temp)  # type: ignore
         self._size += other.size
     
-    def remap(self, element_tuple: tuple[T, ...], element_map: dict[T, int]) -> None:
-        tuple_in_progress: list[T] = []
-        map_in_progress: dict[T, int] = {}
+    def _remap(self, other_element_tuple: tuple[T, ...], other_element_map: dict[T, int]) -> None:
+        """Remaps this holodeque's element tuple to match another holodeque's element tuple.
         
+        Swaps the rows and columns for each cycle detected.
+        
+        Args:
+            other_element_tuple: The element tuple of the other holodeque.
+            other_element_map: The element map of the other holodeque.
+        """
+        index_mapping = [other_element_map[element] for element in self._element_tuple]
+        visited = [False] * self._shape
+        for i in range(self._shape):
+            if visited[i] or index_mapping[i] == i:
+                continue
+            cycle = []
+            j = i
+            while not visited[j]:
+                visited[j] = True
+                cycle.append(j)
+                j = index_mapping[j]
+            for k in range(1, len(cycle)):
+                idx1 = cycle[0]
+                idx2 = cycle[k]
+                for col in range(self._shape):
+                    self._matrix[idx1][col], self._matrix[idx2][col] = self._matrix[idx2][col], self._matrix[idx1][col]
+                for row in range(self._shape):
+                    self._matrix[row][idx1], self._matrix[row][idx2] = self._matrix[row][idx2], self._matrix[row][idx1]
+        self._element_tuple = other_element_tuple
+        self._element_map = other_element_map
 
     @override
     def clear(self) -> None:

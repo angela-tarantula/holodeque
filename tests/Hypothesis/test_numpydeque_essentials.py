@@ -773,7 +773,7 @@ def test_concatself(pair):
     hd3 = numpydeque(alphabet=alphabet, iterable = lst + lst)
     assert np.array_equal(hd1, hd2) and np.array_equal(hd2, hd3)
 
-
+@settings(max_examples=5_000, deadline=None)
 @given(two_alphabets_two_lists())
 def test_concatright_requires_same_alphabet(quad):
     alphabet1, alphabet2, lst1, lst2 = quad
@@ -785,7 +785,7 @@ def test_concatright_requires_same_alphabet(quad):
         with pytest.raises(ValueError):
             hd11.concatright(hd22)
 
-
+@settings(max_examples=5_000, deadline=None)
 @given(two_alphabets_two_lists())
 def test_concatleft_requires_same_alphabet(quad):
     alphabet1, alphabet2, lst1, lst2 = quad
