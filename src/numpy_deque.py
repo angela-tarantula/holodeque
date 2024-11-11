@@ -51,12 +51,14 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
 
     @override
     def concatleft(self, other: Self) -> None:
-        if self._alphabet != other._alphabet:
-            raise ValueError(
-                "incompatible holodeque because they have different alphabets")
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
+        if self._alphabet != other._alphabet:
+            raise ValueError(
+                "incompatible holodeque because they have different alphabets")
+        if self._element_tuple != other._element_tuple:
+            self.remap(other._element_tuple, other._element_map)
         if self is other:
             other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
@@ -68,12 +70,14 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
 
     @override
     def concatright(self, other: Self) -> None:
-        if self._alphabet != other._alphabet:
-            raise ValueError(
-                "incompatible holodeque because they have different alphabets")
         if self._maxlen is not None and self._size + other._size > self._maxlen:
             raise ValueError(
                 "incompatible holodeque because it would exceed maximum length")
+        if self._alphabet != other._alphabet:
+            raise ValueError(
+                "incompatible holodeque because they have different alphabets")
+        if self._element_tuple != other._element_tuple:
+            self.remap(other._element_tuple, other._element_map)
         if self is other:
             other = self.copy()
         convert: Callable[[int], int] = lambda x: other._get_axis(
@@ -82,6 +86,11 @@ class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
             [other._matrix[convert(i)] for i in range(self._shape)])
         self._matrix = np.matmul(self._matrix, temp)  # type: ignore
         self._size += other.size
+    
+    def remap(self, element_tuple: tuple[T, ...], element_map: dict[T, int]) -> None:
+        tuple_in_progress: list[T] = []
+        map_in_progress: dict[T, int] = {}
+        
 
     @override
     def clear(self) -> None:
