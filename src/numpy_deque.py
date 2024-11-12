@@ -10,7 +10,7 @@ from src.alphabetized_holodeque import AlphabeticHolodeque
 
 
 class numpydeque[T: Hashable](AlphabeticHolodeque[np.int64, T]):
-    """A holodeque with a predefined alphabet.   
+    """A numpy-powered holodeque with a predefined fixed-alphabet.
 
     Attributes:
         _matrix: A square numpy matrix representing the state of the holodeque.

@@ -8,7 +8,7 @@ from src.alphabetized_holodeque import AlphabeticHolodeque
 
 
 class holodeque[T: Hashable](AlphabeticHolodeque[int, T]):
-    """A holodeque with a predefined alphabet.   
+    """A pure-python holodeque with a predefined fixed-alphabet.
 
     Attributes:
         _matrix: A square matrix representing the state of the holodeque.

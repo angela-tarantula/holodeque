@@ -38,12 +38,10 @@ This means when m << $N$, Each of these operations are $O(1)$ relative to the si
 
 I chose an object-oriented design where BaseHolodeque is an abstract base class that is subclassed by holodeque, binarydeque, numpydeque, holodeque64, quickdeque, and polydeque.
 
- - holodeque - The main implementation of the holodeque. It uses Python's built-in list data structure to store the matrices.
- - binarydeque - A lightweight holodeque that stores only two different objects but is faster.
- - numpydeque - A holodeque that uses numpy arrays instead of Python lists to store the matrices. It utilizes BLAS routines for matrix multiplication, so in theory it's faster, but in practice the matrices are small enough that the overhead of numpy objects is not worth it.
- - holodeque64 - A holodeque that uses 64-bit integers instead of Python's arbitrary-precision integers. This is faster, but it limits the deque size.
- - quickdeque - A holodeque that manually implements explicit SIMD instructions. It also experiments with a few shortcuts to speed up matrix multiplication.
- - polydeque - Instead of a holodeque of size $m\times m$, it uses $m$ binarydeques. 
+ - holodeque - The pure-python implementation of the holodeque concept that accepts a fixed set of input.
+ - binarydeque - A lightweight holodeque that only accepts a set of two input, but is faster.
+ - fexideque - A holodeque that can accept a mutable set of any number of input, but is slower.
+ - numpydeque - A holodeque that uses numpy arrays of 64-bit integers for the base matrix.
 
 I type hint all my code and use mypy to check it. I also use unittest, pytest, and Hypothesis to test it.
 
