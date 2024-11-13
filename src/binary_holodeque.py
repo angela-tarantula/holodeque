@@ -31,12 +31,16 @@ class binarydeque(BaseHolodeque[int, bool]):
         
     @override
     def pushleft(self, index: bool) -> None:
+        if self._size == self._maxlen:
+            self._handle_overflow(from_left=True)
         self._matrix[index][0] += self._matrix[1-index][0]
         self._matrix[index][1] += self._matrix[1-index][1]
         self._size += 1
     
     @override
     def pushright(self, index: bool) -> None:
+        if self._size == self._maxlen:
+            self._handle_overflow(from_left=False)
         self._matrix[0][1-index] += self._matrix[0][index]
         self._matrix[1][1-index] += self._matrix[1][index]
         self._size += 1

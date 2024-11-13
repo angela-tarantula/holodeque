@@ -41,6 +41,7 @@ class flexideque(BaseHolodeque[int, Any], ABC):
         """The dimension of the holodeque base matrix."""
         return self._shape - 1
     
+    @property
     def alphabet(self) -> Set[Any]:
         """The set of unique elements that the holodeque can contain."""
         return frozenset(self._element_list)
