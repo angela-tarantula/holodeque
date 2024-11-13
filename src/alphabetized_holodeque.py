@@ -176,6 +176,6 @@ class AlphabeticHolodeque[NL: NumberLike, T: Hashable](BaseHolodeque[NL, T], ABC
     def __contains__(self, element: T) -> bool:
         try:
             index: int = self._get_axis(element)
-            return any(self._matrix[index][i] != int(index == i) for i in range(self._shape))
+            return bool(self._matrix[index][index-1])
         except ValueError:
             return False
