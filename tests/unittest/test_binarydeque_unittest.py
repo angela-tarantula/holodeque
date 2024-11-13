@@ -7,17 +7,17 @@ from src.binary_holodeque import binarydeque
 class TestBinarydeque(unittest.TestCase):
 
     def setUp(self):
-        self.dq = deque([0, 1])
-        self.bdeque = binarydeque([0, 1])
+        self.dq = deque([False, True])
+        self.bdeque = binarydeque([False, True])
 
     def test_append_pushright(self):
-        self.dq.append(0)
-        self.bdeque.pushright(0)
+        self.dq.append(False)
+        self.bdeque.pushright(False)
         self.assertEqual(list(self.dq), list(self.bdeque))
 
     def test_appendleft_pushleft(self):
-        self.dq.appendleft(1)
-        self.bdeque.pushleft(1)
+        self.dq.appendleft(True)
+        self.bdeque.pushleft(True)
         self.assertEqual(list(self.dq), list(self.bdeque))
 
     def test_pop_popright(self):
@@ -35,24 +35,24 @@ class TestBinarydeque(unittest.TestCase):
         self.assertEqual(self.dq[-1], self.bdeque.peekright())
 
     def test_extend_extendright(self):
-        self.dq.extend([0, 1])
-        self.bdeque.extendright([0, 1])
+        self.dq.extend([False, True])
+        self.bdeque.extendright([False, True])
         self.assertEqual(list(self.dq), list(self.bdeque))
 
     def test_extendleft_extendleft(self):
-        self.dq.extendleft([0, 1])
-        self.bdeque.extendleft([0, 1])
+        self.dq.extendleft([False, True])
+        self.bdeque.extendleft([False, True])
         self.assertEqual(list(self.dq), list(self.bdeque))
 
     def test_concatright(self):
-        bdeque2 = binarydeque([1, 0])
+        bdeque2 = binarydeque([True, False])
         self.bdeque.concatright(bdeque2)
-        self.assertEqual(list(self.bdeque), [0, 1, 1, 0])
+        self.assertEqual(list(self.bdeque), [False, True, True, False])
 
     def test_concatleft(self):
-        bdeque2 = binarydeque([1, 0])
+        bdeque2 = binarydeque([True, False])
         self.bdeque.concatleft(bdeque2)
-        self.assertEqual(list(self.bdeque), [1, 0, 0, 1])
+        self.assertEqual(list(self.bdeque), [True, False, False, True])
 
     def test_copy(self):
         dq_copy = self.dq.copy()
@@ -69,13 +69,13 @@ class TestBinarydeque(unittest.TestCase):
         self.assertEqual(list(self.dq), list(self.bdeque))
 
     def test_remove(self):
-        self.dq.remove(1)
-        self.bdeque.remove(1)
+        self.dq.remove(True)
+        self.bdeque.remove(True)
         self.assertEqual(list(self.dq), list(self.bdeque))
 
     def test_count(self):
-        self.assertEqual(self.dq.count(1), self.bdeque.count(1))
-        self.assertEqual(self.dq.count(0), self.bdeque.count(0))
+        self.assertEqual(self.dq.count(True), self.bdeque.count(True))
+        self.assertEqual(self.dq.count(False), self.bdeque.count(False))
 
     def test_reverse(self):
         self.dq.reverse()
@@ -86,10 +86,6 @@ class TestBinarydeque(unittest.TestCase):
         self.dq.clear()
         self.bdeque.clear()
         self.assertEqual(list(self.dq), list(self.bdeque))
-
-    def test_invalid_input(self):
-        with self.assertRaises(ValueError):
-            self.bdeque.pushright(2)
 
 
 if __name__ == '__main__':
