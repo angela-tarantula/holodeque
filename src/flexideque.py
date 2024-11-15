@@ -14,7 +14,6 @@ class flexideque(BaseHolodeque[int, Any], ABC):
         _shape: The dimension of the base matrix (its width and height).
         _size: The current number of elements in the holodeque.
         _maxlen: The maximum allowed size of the holodeque; None if unbounded.
-        _alphabet: The set of unique elements that the holodeque currently contains.
         _element_tuple: An tuple of acceptable input for the holodeque.
         _element_map: A hashmap that maps each containable element to an index in _element_tuple.
     """
