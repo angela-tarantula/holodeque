@@ -1,0 +1,23 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.6, pytest-8.3.3, pluggy-1.5.0
+rootdir: /Users/angelaliss/code/holodeque
+configfile: pyproject.toml
+plugins: hypothesis-6.115.5
+collected 371 items
+
+tests/Hypothesis/test_binarydeque_essentials.py ........................ [  6%]
+........................................                                 [ 17%]
+tests/Hypothesis/test_binarydeque_secondary.py ........................  [ 23%]
+tests/Hypothesis/test_flexideque_essentials.py ......................... [ 30%]
+..................................                                       [ 39%]
+tests/Hypothesis/test_flexideque_secondary.py ......................     [ 45%]
+tests/Hypothesis/test_holodeque_essentials.py .......................... [ 52%]
+..........................................                               [ 63%]
+tests/Hypothesis/test_holodeque_secondary.py ........................    [ 70%]
+tests/Hypothesis/test_numpydeque_essentials.py ......................... [ 77%]
+...........................................                              [ 88%]
+tests/Hypothesis/test_numpydeque_secondary.py ........................   [ 95%]
+tests/application/test_parentheses.py ..                                 [ 95%]
+tests/unittest/test_binarydeque_unittest.py ................             [100%]
+
+======================= 371 passed in 224.35s (0:03:44) ========================

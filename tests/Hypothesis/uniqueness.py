@@ -36,7 +36,7 @@ def test_all_permutations_are_unique(pair):
         return tuple(tuple(row) for row in matrix)
 
     for perm in permutations(range(len(lst))):
-        hd = holodeque(alphabet)
+        hd = holodeque(alphabet=alphabet)
         for val in perm:
             hd.pushright(lst[val])
         matrices.add(matrixtuple(hd._matrix))

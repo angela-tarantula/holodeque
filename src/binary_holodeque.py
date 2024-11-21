@@ -13,7 +13,6 @@ class binarydeque(BaseHolodeque[int, bool]):
         _shape: The dimension of the base matrix (its width and height).
         _size: The current number of elements in the holodeque.
         _maxlen: The maximum allowed size of the holodeque; None if unbounded.
-        _alphabet: The set of unique elements that the holodeque can contain.
     """
 
     @override
