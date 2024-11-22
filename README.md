@@ -49,7 +49,7 @@ The name “holodeque” is inspired by the holodeck in Star Trek. It’s a play
 
 ### Future Work
 
-Warning: written hastily: I need to write a C++ implementation of this to truly benchmark the performance. I would also like to write a Rust implementation to see if it's faster. In C++ I want to switch from using abstract base class to an interface. There are probably other data structures which can be remodeled as matrix transformations. I also want to explore all the different ways to parallelize my code. I also want to try making it thread-safe.
+I need to write a C++ implementation of this to truly benchmark the performance. I would also like to write a Rust implementation to see if it's faster. In C++ I want to switch from using abstract base class to an interface. There are probably other data structures which can be remodeled as matrix transformations. I also want to explore all the different ways to parallelize my code. I also want to try making it thread-safe.
 
 
 ### Notes to Self
