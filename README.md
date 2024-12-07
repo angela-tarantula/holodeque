@@ -1,25 +1,68 @@
-# holodeque.py
+This is documentation of my amateurish attempt at algorithm design.
 
-### Introduction
+# Introduction
 
-The double-ended queue, or **deque**, is a crucial data structure that supports adding (**pushing**), removing (**popping**), and **concatenating** elements from either the front or back in $O(1)$ time. In its textbook implementation, a deque is a doubly-linked list where each node stores one datum and memory is managed dynamically. However, this design incurs a 200% memory overhead (two pointers for each node) and can be slow because each operation requires calling malloc() or free() for memory management.  Modern performant implementations improve upon this by using fixed-length blocks between links. This approach reduces the overhead ratio by packing more data between links, decreasing the frequency of malloc() and free() calls per operation, and taking advantage of data locality within blocks. While this optimization is highly efficient, I've conceived of a new approach rooted in linear algebra that leverages matrix multiplication as a core operation, aiming to rival or even outperform traditional deque implementations.
+The double-ended queue, or **deque**, is a crucial data structure that supports **pushing**, **popping**, **peeking**, and **concatenating** elements from either the front or back in $O(1)$ time. In its textbook implementation, a deque is a doubly-linked list where each node stores one datum and memory is managed dynamically. But in performance-critical sections of code, every microsecond and byte of memory counts. This design incurs a 200% memory overhead because there are two pointers for each node, and it can be slow because each operation requires calling malloc() or free() for memory management. Modern performant implementations improve upon this by using fixed-length blocks between links. This approach reduces the overhead ratio by packing more data between links, decreasing the frequency of malloc() and free() calls per operation, and taking advantage of data locality within blocks. While this optimization is highly efficient, I've conceived of a new approach rooted in linear algebra that leverages matrix multiplication as a core operation, aiming to rival modern deque implementations. I concocted this prototype and discovered that it’s *pretty good actually* but not *better than the best*.
 
-### Matrix-Multiplication-Based Deque
+# Background
+
+My initial investigation was focused on the simplest case, where the deque only accepts 2 different objects.
+
+## Using an Integer as a Bit Stack for Performance
+
+One technique, which I’m not the first to discover, is to represent a simple stack of boolean values (bits) using a single integer. This way, instead of managing a dynamic data structure or relying on heap allocations, you can use native CPU instructions to push, pop, and peek bits at O(1) cost. This can lead to noticeable performance improvements, especially in tight loops or memory-constrained environments. 
+
+### How It Works:
+
+When the stack is empty, the integer is zero. We will assume the top of the stack is the least significant bit (LSB).
+
+```
+long long S = 0;
+```
+
+**Peek**: Reading the LSB with a simple bitwise AND operation.
+
+```
+return S & 1
+```
+
+**Push**: A left-shift and a bitwise OR operation.
+
+```
+S = (S << 1) | b
+```
+
+**Pop**: Reading the LSB and then right-shifting.
+
+```
+LSB = S & 1
+S = S >> 1
+return LSB
+```
+
+Bitwise implementations of the bit-queue and bit-deque can be designed similarly with a bit more ingenuity (pun intended). 
+
+# Making it Generic
+
+## Using a Matrix Instead of an Integer
 
 Modern BLAS (**Basic Linear Algebra Subprograms**) libraries achieve matrix multiplication at remarkable speeds, often outpacing the traditional memory operations involved in deque management. Inspired by this efficiency, I designed a deque structure that uses matrix multiplication as the central operation for deque manipulation. In this model, each element in the deque corresponds to a unique matrix, and the deque’s state is represented by the product of these matrices in sequence.
 
-For example, a deque containing elements [𝑎, 𝑏, 𝑐, 𝑏, 𝑎, 𝑏] corresponds to a matrix $M=ABCBAB$, where each letter represents a unique matrix for that element, multiplied in the order of the deque. This approach leverages the non-commutative nature of matrix multiplication, ensuring that different sequences produce distinct states – provided that matrices $A, B, C, \ldots$ are chosen carefully (discussion *here* TODO).
+For example, a deque containing elements [𝑎, 𝑏, 𝑐, 𝑏, 𝑎, 𝑏] corresponds to a matrix $M=ABCBAB$, where {𝑎: $A$, 𝑏: $B$, 𝑐: $C$}. This approach leverages the non-commutative nature of matrix multiplication, ensuring that different sequences produce distinct states – provided that matrices $A, B, C, \ldots$ are chosen carefully.
 
 ### Operations
 
-In my model, deque operations like push, pop, and concatenate are represented as matrix multiplications, effectively shifting memory management responsibilities from malloc() and free() calls to efficient BLAS routines. Adding an element to the right side is right-sided multiplication, $M'=M\times C$, and adding an element to the left is left-side multiplication, $M'=C\times M$. Removing elements corresponds to multiplying by the inverse matrix at the respective side, such as $M' = M \times B^{-1}$ to remove 𝑏 from the right side, or $M' = A^{-1} \times M$ to remove 𝑎 from the left side. Concatenation of two deques is a multiplication of their matrices, $M’ = J \times K$, where the multiplication order corresponds to the concatenation order.
+In my model, deque operations like push, pop, and concatenate are represented as matrix multiplications, effectively shifting memory management responsibilities from malloc() and free() calls to efficient BLAS routines. Adding an element, 𝑐, to the right side is right-sided multiplication, $M'=M\times C$, and adding an element to the left is left-side multiplication, $M'=C\times M$. Removing elements corresponds to multiplying by the inverse matrix at the respective side, such as $M' = M \times B^{-1}$ to remove 𝑏 from the right side, or $M' = A^{-1} \times M$ to remove 𝑎 from the left side. Concatenation of two deques is a multiplication of their matrices, $M’ = J \times K$, where the multiplication order corresponds to the concatenation order.
 
-There is one more central operation of a deque, called **peek**, which returns the element at either specified end of the deque without removing it. In my model, peek is not a matrix multiplication, but rather a matrix decomposition that depends on how $A$, $B$, $C$, etc. are chosen (discussion *here* TODO).
+In my model, peek is not a matrix multiplication, but rather a matrix decomposition that depends on how $A$, $B$, $C$, etc. are chosen.
+
+We access $A$, $B$, and $C$ from 𝑎, 𝑏, and 𝑐, respectively, by using a hashmap. If the number of distinct elements in the deque is known ahead of time, the hashmap conversion can be replaced with a hard-coded algorithm to save time.
+
+As an added benefit, if we utilize the BLAS libraries and frameworks like Numpy or TensorFlow, all these operations will be thread-safe.
 
 ### Time Complexity
 
-I found a way to construct matrices such that a deque of size $N$ with $m$ elements has the following operation time complexities:
-
+Let $N$ = the size of the deque, and $m$ = the number of elements in it. I devised an implementation with the following operations:
 1. Push: $O(m^2)$
 2. Pop: $O(m^2)$
 3. Concatenate: $O(m^3)$
@@ -30,27 +73,88 @@ This means when m << $N$, Each of these operations are $O(1)$ relative to the si
 ### Limitations
 
 1. The operations are only $O(1)$ when $m$ << $N$.
-2. Arithmetic operations are only truly $O(1)$ for fixed-width integers, but in my model, the integers in the matrix grow unbounded. Therefore, whether or not my model constitutes an $O(1)$ deque [depends on the model of computational complexity you use](https://stackoverflow.com/questions/78959192/time-complexity-of-this-dynamic-programming-algorithm-to-get-nth-fibonacci-numbe). I derive *here* (TODO) that the bitsize of the integers grows linearly with deque size by a factor of $\log_{2}{\phi}$, which means large-scale usage of my model is limited. However, there are many times when asymptotically-dominant models are weighed down by constants enough such that other models are preferred. I hope to find that the fast speed of arithmetic on modern machines can outpace malloc() and free() for meaningful deque sizes. This prototype is written in Python as a proof of concept, but to truly benchmark the performance, I will need to implement this in a lower-level language like C++ or Rust.
-3. My model can only store immutable objects. This is because the matrix representation of the deque is a product of matrices, and the matrices are not changed once they are created.
-4. My model is not thread-safe. This is because the matrix representation of the deque is not atomic, and multiple threads could modify it simultaneously. This can be different in another language though, or with more work on this one.
+2. My model can only store immutable objects. Otherwise, the conversion of each object to a unique matrix would be unstable.
+3. As was the case for the bit-stack integer, this model is susceptible to integer overflow. We could use arbitrary-precision integer libraries, or languages that provide this functionality out of the box, such as Python and Haskell, but this compromises performance.
 
-### About This Prototype
+# About This Prototype
+
+I titled this project “holodeque” as an homage to the holodeck in Star Trek. It’s a play on words but also fitting because they share this notion of encoding information with transformations.
+
+### Organization
 
 I chose an object-oriented design where BaseHolodeque is an abstract base class that is subclassed by holodeque, binarydeque, numpydeque, holodeque64, quickdeque, and polydeque.
+- holodeque - The pure-python implementation of the holodeque concept that accepts a fixed set of input.
+- binarydeque - A lightweight holodeque that only accepts a set of two input, but is faster.
+- fexideque - A holodeque that can accept a mutable set of any number of input, but is slower.
+- numpydeque - A holodeque that uses numpy arrays of 64-bit integers for the base matrix.
 
- - holodeque - The pure-python implementation of the holodeque concept that accepts a fixed set of input.
- - binarydeque - A lightweight holodeque that only accepts a set of two input, but is faster.
- - fexideque - A holodeque that can accept a mutable set of any number of input, but is slower.
- - numpydeque - A holodeque that uses numpy arrays of 64-bit integers for the base matrix.
+### Testing
 
 I type hint all my code and use mypy to check it. I also use unittest, pytest, and Hypothesis to test it.
 
-The name “holodeque” is inspired by the holodeck in Star Trek. It’s a play on words but also fitting they share this notion of encoding information with transformations.
+### Trying It Yourself
+
+You can read the documentation like this:
+
+```
+pydoc src/holodeque.py
+```
+
+You can import any of the modules in the `src` folder and give it a spin. For example, from the root you can try the following commands:
+
+```
+>>> python3
+>>> from src.holodeque import holodeque
+>>> deque = holodeque(alphabet={0,1,2,3,4,5,6,7,8,9}) # accepts digits 0-9
+>>> for i in range(10):
+...  if i % 2:
+...    deque.pushleft(i)
+...  else:
+...    deque.pushright(i)
+>>> print(deque)
+holodeque([9, 7, 5, 3, 1, 0, 2, 4, 6, 8], alphabet=frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}))
+>>> from src.flexideque import flexideque
+>>> deque = flexideque() # no prior specification of alphabet required
+>>> from random import random
+>>> for i in range(10):
+...   deque.pushright(random()) # works
+```
+
+### Choosing $A$, $B$, $C$, etc
+
+I chose a simple, scalable approach for this prototype. The set of distinct objects that the holodeque accepts is clarified during instantiation as its *alphabet*. Suppose |alphabet| = 3, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
+
+{
+
+𝑎: [[1,1,1],[0,1,0],[0,0,1]], 
+
+𝑏: [[1,0,0],[1,1,1],[0,0,1]], 
+
+𝑐: [[1,0,0],[0,1,0],[1,1,1]]
+
+}
+
+In the general case, when |alphabet| = $n$, each of the $n$ matrices are $n\times n$. They are all identity matrices in which a different, single row is replaced by a row filled with 1s.
+
+This construction is convenient for many reasons:
+1. The matrices can be constructed formulaically and do not need to be hard-coded
+2. The pattern is scalable
+3. Each matrix’s inverse can also be derived formulaically: simply negate all the 1s of the special row filled with 1s.
+4. Left-multiplication can be reduced to a few row additions (try it)
+5. Right-multiplication can be reduced to a few column additions (try it)
+6. By using small numbers, each multiplication doesn’t grow the product by that much, which prolongs the stable period before integer overflow or cost-intensive arbitrary-precision operations.
+
+I considered using floating point numbers, but floating point arithmetic errors are so frequent they compromise the reliability.
+
+This construction also guarantees non-commutativity. The handwritten proof is inside the proof.tldr file. You can open it with *this link* (TODO; in the meantime you can download it and open it at tldraw.com).
 
 ### Future Work
 
-I need to write a C++ implementation of this to truly benchmark the performance. I would also like to write a Rust implementation to see if it's faster. In C++ I want to switch from using abstract base class to an interface. There are probably other data structures which can be remodeled as matrix transformations. I also want to explore all the different ways to parallelize my code. I also want to try making it thread-safe.
-
+- Switch to a low level language.
+  - This will allow more accurate benchmarking.
+  - Python doesn’t allow interfaces, but ideally the abstract base class is replaced with an interface when I switch to C++.
+- Try making it thread-safe.
+- Moonshot idea: a custom hash function where the values 
 
 ### Notes to Self
 
