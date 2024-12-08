@@ -60,22 +60,6 @@ We access $A$, $B$, and $C$ from 𝑎, 𝑏, and 𝑐, respectively, by using a 
 
 As an added benefit, if we utilize the BLAS libraries and frameworks like Numpy or TensorFlow, all these operations will be thread-safe.
 
-### Time Complexity
-
-Let $N$ = the size of the deque, and $m$ = the number of elements in it. I devised an implementation with the following operations:
-1. Push: $O(m^2)$
-2. Pop: $O(m^2)$
-3. Concatenate: $O(m^3)$
-4. Peek: $O(m)$
-
-This means when m << $N$, Each of these operations are $O(1)$ relative to the size of the deque.
-
-### Limitations
-
-1. The operations are only $O(1)$ when $m$ << $N$.
-2. My model can only store immutable objects. Otherwise, the conversion of each object to a unique matrix would be unstable.
-3. As was the case for the bit-stack integer, this model is susceptible to integer overflow. We could use arbitrary-precision integer libraries, or languages that provide this functionality out of the box, such as Python and Haskell, but this compromises performance.
-
 # About This Prototype
 
 I titled this project “holodeque” as an homage to the holodeck in Star Trek. It’s a play on words but also fitting because they share this notion of encoding information with transformations.
@@ -92,6 +76,22 @@ I chose an object-oriented design where BaseHolodeque is an abstract base class 
 
 I type hint all my code and use mypy to check it. I also use unittest, pytest, and Hypothesis to test it.
 
+### Time Complexity
+
+Let $N$ = the size of the deque, and $m$ = the number of elements in it. I devised an implementation with the following operations:
+1. Push: $O(m^2)$
+2. Pop: $O(m^2)$
+3. Concatenate: $O(m^3)$
+4. Peek: $O(m)$
+
+This means when m << $N$, Each of these operations are $O(1)$ relative to the size of the deque.
+
+### Limitations
+
+1. The operations are only $O(1)$ when $m$ << $N$.
+2. My model can only store immutable objects. Otherwise, the conversion of each object to a unique matrix would be unstable.
+3. As was the case for the bit-stack integer, this model is susceptible to integer overflow. We could use arbitrary-precision integer libraries, or languages that provide this functionality out of the box, such as Python and Haskell, but this compromises performance.
+
 ### Trying It Yourself
 
 You can read the documentation like this:
@@ -103,7 +103,7 @@ pydoc src/holodeque.py
 You can import any of the modules in the `src` folder and give it a spin. For example, from the root you can try the following commands:
 
 ```
->>> python3
+python3
 >>> from src.holodeque import holodeque
 >>> deque = holodeque(alphabet={0,1,2,3,4,5,6,7,8,9}) # accepts digits 0-9
 >>> for i in range(10):
@@ -124,15 +124,21 @@ holodeque([9, 7, 5, 3, 1, 0, 2, 4, 6, 8], alphabet=frozenset({0, 1, 2, 3, 4, 5, 
 
 I chose a simple, scalable approach for this prototype. The set of distinct objects that the holodeque accepts is clarified during instantiation as its *alphabet*. Suppose |alphabet| = 3, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
 
+```
 {
+𝑎: [[1,1,1],
+    [0,1,0],
+    [0,0,1]], 
 
-𝑎: [[1,1,1],[0,1,0],[0,0,1]], 
+𝑏: [[1,0,0],
+    [1,1,1],
+    [0,0,1]], 
 
-𝑏: [[1,0,0],[1,1,1],[0,0,1]], 
-
-𝑐: [[1,0,0],[0,1,0],[1,1,1]]
-
+𝑐: [[1,0,0],
+    [0,1,0],
+    [1,1,1]]
 }
+```
 
 In the general case, when |alphabet| = $n$, each of the $n$ matrices are $n\times n$. They are all identity matrices in which a different, single row is replaced by a row filled with 1s.
 
@@ -154,15 +160,4 @@ This construction also guarantees non-commutativity. The handwritten proof is in
   - This will allow more accurate benchmarking.
   - Python doesn’t allow interfaces, but ideally the abstract base class is replaced with an interface when I switch to C++.
 - Try making it thread-safe.
-- Moonshot idea: a custom hash function where the values 
-
-### Notes to Self
-
-try using fixed blocks but blocks are matrices instead of arrays
-
-factors to consider when choosing matrices a b and c
-use Integers bc floats imprecise
-Small or it overflows quickly
-Generalizable so it's scalable
-invertible so pop can work
-peekable - need to be able to decompose the matrix quickly just by knowing the size and possible factors
+- Find another set of matrices that are all non-commutative with each other and test it against my first attempt.
