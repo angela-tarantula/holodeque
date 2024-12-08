@@ -153,7 +153,7 @@ Each test file under ./tests/Hypothesis/ is titled in one of two formats:
 
 ### Choosing $A$, $B$, $C$, etc
 
-I chose a simple, scalable pattern for this prototype. To demonstrate it, I will first give an example. Let $alphabet$ be the set of distinct objects that the holodeque accepts. When |$alphabet$| = $3$, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
+I chose a simple, scalable pattern for this prototype. To demonstrate it, I will first give an example. Let `alphabet` be the set of distinct objects that the holodeque accepts. When `|alphabet| = 3`, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
 
 ```
 {
