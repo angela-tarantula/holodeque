@@ -107,22 +107,22 @@ python3
 >>> from src.holodeque import holodeque
 >>> deque = holodeque(alphabet={0,1,2,3,4,5,6,7,8,9}) # accepts digits 0-9
 >>> for i in range(10):
-...  if i % 2:
-...    deque.pushleft(i)
-...  else:
-...    deque.pushright(i)
+...     if i % 2:
+...         deque.pushleft(i)
+...     else:
+...         deque.pushright(i)
 >>> print(deque)
 holodeque([9, 7, 5, 3, 1, 0, 2, 4, 6, 8], alphabet=frozenset({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}))
 >>> from src.flexideque import flexideque
 >>> deque = flexideque() # no prior specification of alphabet required
 >>> from random import random
 >>> for i in range(10):
-...   deque.pushright(random()) # works
+...     deque.pushright(random()) # works
 ```
 
 ### Choosing $A$, $B$, $C$, etc
 
-I chose a simple, scalable approach for this prototype. The set of distinct objects that the holodeque accepts is clarified during instantiation as its *alphabet*. Suppose |alphabet| = 3, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
+I chose a simple, scalable approach for this prototype. The set of distinct objects that the holodeque accepts is clarified during instantiation as its $alphabet$. Suppose |$alphabet$| = $3$, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
 
 ```
 {
@@ -152,7 +152,7 @@ This construction is convenient for many reasons:
 
 I considered using floating point numbers, but floating point arithmetic errors are so frequent they compromise the reliability.
 
-This construction also guarantees non-commutativity. The handwritten proof is inside the proof.tldr file. You can open it with *this link* (TODO; in the meantime you can download it and open it at tldraw.com).
+This construction also guarantees non-commutativity. I made a handwritten proof found *here* (TODO).
 
 ### Future Work
 
