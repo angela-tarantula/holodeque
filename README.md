@@ -171,7 +171,7 @@ I chose a simple, scalable pattern for this prototype. To demonstrate it, I will
 }
 ```
 
-In the general case, when |alphabet| = $n$, each of the $n$ matrices are $n\times n$. They are all identity matrices in which a different, single row is replaced by a row filled with 1s.
+In the general case, when `|alphabet| = n`, each of the $n$ matrices are $n\times n$. They are all identity matrices in which a different, single row is replaced by a row filled with 1s.
 
 This construction is convenient for many reasons:
 1. The matrices can be constructed formulaically and do not need to be hard-coded
