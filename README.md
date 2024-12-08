@@ -54,7 +54,7 @@ For example, a deque containing elements [𝑎, 𝑏, 𝑐, 𝑏, 𝑎, 𝑏] co
 
 In my model, deque operations like push, pop, and concatenate are represented as matrix multiplications, effectively shifting memory management responsibilities from malloc() and free() calls to efficient BLAS routines. Adding an element, 𝑐, to the right side is right-sided multiplication, $M'=M\times C$, and adding an element to the left is left-side multiplication, $M'=C\times M$. Removing elements corresponds to multiplying by the inverse matrix at the respective side, such as $M' = M \times B^{-1}$ to remove 𝑏 from the right side, or $M' = A^{-1} \times M$ to remove 𝑎 from the left side. Concatenation of two deques is a multiplication of their matrices, $M’ = J \times K$, where the multiplication order corresponds to the concatenation order.
 
-In my model, peek is not a matrix multiplication, but rather a matrix decomposition that depends on how $A$, $B$, $C$, etc. are chosen.
+In my model, peek is not a matrix multiplication, but rather a matrix decomposition that depends on how $A$, $B$, $C$, etc. are chosen. In this prototype, I chose [this pattern](#choosing-a-b-c-etc).
 
 We access $A$, $B$, and $C$ from 𝑎, 𝑏, and 𝑐, respectively, by using a hashmap. If the number of distinct elements in the deque is known ahead of time, the hashmap conversion can be replaced with a hard-coded algorithm to save time.
 
@@ -67,18 +67,16 @@ I titled this project “holodeque” as an homage to the holodeck in Star Trek.
 ### Organization
 
 I chose an object-oriented design where BaseHolodeque is an abstract base class that is subclassed by holodeque, binarydeque, numpydeque, holodeque64, quickdeque, and polydeque.
+
 - holodeque - The pure-python implementation of the holodeque concept that accepts a fixed set of input.
 - binarydeque - A lightweight holodeque that only accepts a set of two input, but is faster.
 - fexideque - A holodeque that can accept a mutable set of any number of input, but is slower.
 - numpydeque - A holodeque that uses numpy arrays of 64-bit integers for the base matrix.
 
-### Testing
-
-I type hint all my code and use mypy to check it. I also use unittest, pytest, and Hypothesis to test it.
-
 ### Time Complexity
 
 Let $N$ = the size of the deque, and $m$ = the number of elements in it. I devised an implementation with the following operations:
+
 1. Push: $O(m^2)$
 2. Pop: $O(m^2)$
 3. Concatenate: $O(m^3)$
@@ -120,9 +118,42 @@ holodeque([9, 7, 5, 3, 1, 0, 2, 4, 6, 8], alphabet=frozenset({0, 1, 2, 3, 4, 5, 
 ...     deque.pushright(random()) # works
 ```
 
+### Testing
+
+I type hint all my code and use mypy to check it. If you have installed mypy, you can run the following command to verify this yourself:
+```
+pip3 install mypy
+mypy src/
+````
+I also wrote 371 tests using unittest, pytest, and Hypothesis. If you have pytest, hypothesis, and numpy all installed, you can run the following command check attempt them:
+```
+pip3 install pytest hypothesis numpy
+pytest
+````
+There is one more test which you can run like so:
+```
+pytest tests/Hypothesis/uniqueness.py
+```
+But it should take a whole hour to run. It exhaustively proves non-commutativity of the chosen matrices for deque size up to 10. It is not an actual proof for all deque sizes, but it is useful for debugging when I tinker with the chosen matrices, because the test will fail quickly if the matrices aren't commutative.
+
+Each test file under ./tests/Hypothesis/ is titled in one of two formats:
+
+ - **test_<module>_essentials.py**: A suite of test checking that the basic functionality works. The tests are strategically ordered so that the first failure reveals the exact error occurring. The tests use Hypothesis to make sure that general rules are followed, such as associativity of concatenation.
+ - **test_<module>_secondary.py**: A suite of tests checking that secondary functionality works, such as magic methods and the maxlen parameter.
+
+ There is one more test file ./tests/application/test_parentheses.py that basically runs the holodeque side by side against collections.deque to solve a basic leetcode problem (20. Valid Parentheses). If confirms that both deque implementations find the same answer.
+
+### Future Work
+
+- Switch to a low level language.
+  - This will allow more accurate benchmarking.
+  - Python doesn’t allow interfaces, but ideally the abstract base class is replaced with an interface when I switch to C++.
+- Try making it thread-safe.
+- Find another set of matrices that are all non-commutative with each other and test it against my first attempt.
+
 ### Choosing $A$, $B$, $C$, etc
 
-I chose a simple, scalable approach for this prototype. The set of distinct objects that the holodeque accepts is clarified during instantiation as its $alphabet$. Suppose |$alphabet$| = $3$, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
+I chose a simple, scalable pattern for this prototype. To demonstrate it, I will first give an example. Let $alphabet$ be the set of distinct objects that the holodeque accepts. When |$alphabet$| = $3$, then objects 𝑎, 𝑏, 𝑐 are represented by the following matrices:
 
 ```
 {
@@ -153,11 +184,3 @@ This construction is convenient for many reasons:
 I considered using floating point numbers, but floating point arithmetic errors are so frequent they compromise the reliability.
 
 This construction also guarantees non-commutativity. I made a handwritten proof found *here* (TODO).
-
-### Future Work
-
-- Switch to a low level language.
-  - This will allow more accurate benchmarking.
-  - Python doesn’t allow interfaces, but ideally the abstract base class is replaced with an interface when I switch to C++.
-- Try making it thread-safe.
-- Find another set of matrices that are all non-commutative with each other and test it against my first attempt.
