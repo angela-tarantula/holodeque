@@ -101,7 +101,7 @@ pydoc src/holodeque.py
 You can import any of the modules in the `src` folder and give it a spin. For example, from the root you can try the following commands:
 
 ```
-python3
+python3 # you need at least python 3.12
 >>> from src.holodeque import holodeque
 >>> deque = holodeque(alphabet={0,1,2,3,4,5,6,7,8,9}) # accepts digits 0-9
 >>> for i in range(10):
