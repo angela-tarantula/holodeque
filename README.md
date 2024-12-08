@@ -138,8 +138,8 @@ But it should take a whole hour to run. It exhaustively proves non-commutativity
 
 Each test file under ./tests/Hypothesis/ is titled in one of two formats:
 
- - **test_<module>_essentials.py**: A suite of test checking that the basic functionality works. The tests are strategically ordered so that the first failure reveals the exact error occurring. The tests use Hypothesis to make sure that general rules are followed, such as associativity of concatenation.
- - **test_<module>_secondary.py**: A suite of tests checking that secondary functionality works, such as magic methods and the maxlen parameter.
+ - **test_\<module\>_essentials.py**: A suite of test checking that the basic functionality works. The tests are strategically ordered so that the first failure reveals the exact error occurring. The tests use Hypothesis to make sure that general rules are followed, such as associativity of concatenation.
+ - **test_\<module\>_secondary.py**: A suite of tests checking that secondary functionality works, such as magic methods and the maxlen parameter.
 
  There is one more test file ./tests/application/test_parentheses.py that basically runs the holodeque side by side against collections.deque to solve a basic leetcode problem (20. Valid Parentheses). If confirms that both deque implementations find the same answer.
 
