@@ -56,7 +56,7 @@ Peeking involves a form of factorization to identify the element at an end. This
 
 ### Time Complexity
 
-Let `m` be the number of unique element types. Operations scale as follows:
+Let `m` be the number of distinct elements in the deque. Operations scale as follows:
 - **Push/Pop**: O(m²)
 - **Concatenate**: O(m³)
 - **Peek**: O(m)
@@ -146,10 +146,13 @@ I provide over 370 tests, including exhaustive hypothesis-driven checks and a si
 ## Choosing the Matrices
 
 For `|alphabet| = n`, each element’s matrix is an `n × n` identity matrix with a single row replaced by all ones. This construction:
+
 1. Scales easily with `n`.
-2. Simplifies the derivation of matrix inverses.
-3. Guarantees non-commutativity.
-4. Minimizes integer growth to reduce overflow risk.
+2. Guarantees non-commutativity.
+3. Minimizes integer growth to reduce overflow risk.
+4. Taking the inverse of these matrices is as simple as negating the row filled with ones.
+5. Enables fast push, peek, and pop operations. Check the code for specific shortcuts it allows.
+
 
 ## Acknowledgments
 
