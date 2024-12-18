@@ -529,6 +529,16 @@ class BaseHolodeque[NL: NumberLike, T: Hashable](ABC):
             self.concatright(temp)
         return self
 
+    # Aliases
+    def append(self, x: T) -> None:
+        self.pushright(x)
+
+    def appendleft(self, x: T) -> None:
+        self.pushleft(x)
+
+    def pop(self) -> T:
+        return self.popright()
+
 
 class HolodequeIterator[NL2: NumberLike, T2: Hashable]:
     """Iterator for traversing a holodeque.
